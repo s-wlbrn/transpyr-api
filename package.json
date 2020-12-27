@@ -1,0 +1,44 @@
+{
+  "name": "transpyr",
+  "version": "1.0.0",
+  "description": "Create, manage, and book events.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "NODE_ENV='production' nodemon server.js",
+    "start-dev": "nodemon server.js",
+    "debug": "ndb server.js"
+  },
+  "author": "Stephen Welbourn",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.2.0",
+    "eslint-plugin-react": "^7.21.5",
+    "prettier": "^2.2.1"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-mongo-sanitize": "^2.0.1",
+    "express-rate-limit": "^5.2.3",
+    "helmet": "^4.2.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.8",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.4.17",
+    "slugify": "^1.4.6",
+    "validator": "^13.5.2",
+    "xss-clean": "^0.1.1"
+  }
+}
