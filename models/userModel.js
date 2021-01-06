@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -43,6 +44,26 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 });
+
+userSchema.methods.correctPassword = async function (
+  passwordAttempt,
+  userPassword
+) {
+  return await bcrypt.compare(passwordAttempt, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
+  if (this.passwordChangedAt) {
+    const formattedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return jwtTimestamp > formattedTimestamp;
+  }
+
+  return false;
+};
 
 const User = mongoose.model('User', userSchema);
 
