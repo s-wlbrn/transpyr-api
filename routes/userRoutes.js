@@ -15,21 +15,23 @@ router.post('/login', authController.login);
 //current user routes
 //router.patch('/update-password', authController.updatePassword);
 
-router
-  .route('/me')
-  .get(userController.getCurrentUser, userController.getUser)
-  .patch(userController.updateCurrentUser)
-  .delete(userController.deactivateCurrentUser);
+// router
+//   .route('/me')
+//   .get(userController.getCurrentUser, userController.getUser)
+//   .patch(userController.updateCurrentUser)
+//   .delete(userController.deactivateCurrentUser);
 
 //Admin-only
 
 router
   .route('/')
   .get(userController.getAllUsers)
-  .create(userController.createUser);
+  .post(userController.createUser);
 
 router
   .route('/users/:id')
   .get(userController.getUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
+
+module.exports = router;

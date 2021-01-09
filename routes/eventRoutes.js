@@ -14,3 +14,5 @@ router
   .get(eventController.getEvent)
   .patch(eventController.updateEvent)
   .delete(eventController.deleteEvent);
+
+module.exports = router;

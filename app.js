@@ -10,6 +10,7 @@ const hpp = require('hpp');
 const AppError = require('./libs/AppError');
 
 //import global error handling middleware
+const globalErrorHandler = require('./controllers/errorController');
 
 //import routers
 const eventRouter = require('./routes/eventRoutes');
@@ -54,5 +55,6 @@ app.all('*', (req, res, next) => {
 });
 
 // Mount global error handler
+app.use(globalErrorHandler);
 
 module.exports = app;

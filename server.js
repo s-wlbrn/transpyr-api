@@ -1,4 +1,4 @@
-const dotenv = require('dotenv').config({ path: '.config.env' });
+const dotenv = require('dotenv').config({ path: './config.env' });
 const mongoose = require('mongoose');
 
 //Handle uncaught exception
