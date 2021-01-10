@@ -1,5 +1,5 @@
 const User = require('../models/userModel');
-const asyncCatch = require('../libs/asyncCatch');
+// const asyncCatch = require('../libs/asyncCatch');
 const AppError = require('../libs/AppError');
 const factory = require('./handlerFactory');
 

@@ -23,6 +23,10 @@ const eventSchema = new mongoose.Schema(
       required: [true, 'Please specify the event capacity.'],
     },
     images: String,
+    createdAt: {
+      type: Date,
+      default: Date.now(),
+    },
     leaders: [
       {
         type: mongoose.Schema.ObjectId,
