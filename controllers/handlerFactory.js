@@ -1,5 +1,6 @@
 const asyncCatch = require('../libs/asyncCatch');
 const AppError = require('../libs/AppError');
+const APIFeatures = require('../libs/apiFeatures');
 
 //One document
 
@@ -70,9 +71,12 @@ exports.deleteOne = (Model) =>
 
 exports.getAll = (Model) =>
   asyncCatch(async (req, res, next) => {
-    //filtering etc?
-
-    const docs = await Model.find(req.body);
+    const queryFeatures = new APIFeatures(Model.find(), req.query)
+      .filter()
+      .sort()
+      .limit()
+      .paginate();
+    const docs = await queryFeatures.query;
 
     res.status(200).json({
       status: 'success',
