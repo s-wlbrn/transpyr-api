@@ -52,7 +52,7 @@ exports.login = asyncCatch(async (req, res, next) => {
 
   //check if both email and password are entered
   if (!email || !password) {
-    return next(new AppError('Please provide an email and passsword', 400));
+    return next(new AppError('Please provide an email and password', 400));
   }
   //check if user exists and password is correct
   const user = await User.findOne({ email }).select('+password');
@@ -73,7 +73,6 @@ exports.login = asyncCatch(async (req, res, next) => {
 exports.protectRoute = asyncCatch(async (req, res, next) => {
   //check for JWT
   let token;
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')

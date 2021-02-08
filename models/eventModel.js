@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const eventSchema = new mongoose.Schema(
   {
@@ -11,28 +12,72 @@ const eventSchema = new mongoose.Schema(
     eventType: {
       type: String,
       required: [true, 'Please specify an event type.'],
-      enum: ['lecture', 'performance', 'social', 'workshop'],
+      enum: [
+        'lecture',
+        'class',
+        'performance',
+        'social',
+        'workshop',
+        'conference',
+        'convention',
+        'expo',
+        'game',
+        'rally',
+        'screening',
+        'tour',
+      ],
+    },
+    category: {
+      type: String,
+      required: [true, 'Please specify an event category.'],
+      enum: [
+        'Business',
+        'Food',
+        'Health and Lifestyle',
+        'Music',
+        'Vehicle',
+        'Charity',
+        'Community',
+        'Fashion',
+        'Film',
+        'Home',
+        'Hobbies',
+        'Performing & Visual Arts',
+        'Politics',
+        'Spirituality',
+        'School',
+        'Science and Technology',
+        'Holiday',
+        'Sports and Fitness',
+        'Travel',
+        'Outdoor & Recreation',
+        'Other',
+      ],
     },
     description: {
       type: String,
       required: [true, 'An event must have a description.'],
     },
     summary: String,
+    price: Number,
     capacity: {
       type: Number,
       required: [true, 'Please specify the event capacity.'],
     },
-    images: String,
+    photo: String,
     createdAt: {
       type: Date,
       default: Date.now(),
     },
-    leaders: [
+    organizers: [
       {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
       },
     ],
+    online: {
+      type: Boolean,
+    },
     locations: [
       {
         type: {
@@ -47,12 +92,17 @@ const eventSchema = new mongoose.Schema(
         },
       },
     ],
+    slug: String,
   },
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
+
+eventSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+});
 
 const Event = mongoose.model('Event', eventSchema);
 
