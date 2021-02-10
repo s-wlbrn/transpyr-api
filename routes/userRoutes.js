@@ -1,5 +1,4 @@
 const express = require('express');
-const multer = require('multer');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
 
@@ -14,15 +13,20 @@ router.post('/login', authController.login);
 //router.patch('/reset-password/:token', authController.resetPassword);
 
 //protect
+router.use(authController.protectRoute);
 
 //current user routes
 //router.patch('/update-password', authController.updatePassword);
 
-// router
-//   .route('/me')
-//   .get(userController.getCurrentUser, userController.getUser)
-//   .patch(userController.updateCurrentUser)
-//   .delete(userController.deactivateCurrentUser);
+router
+  .route('/me')
+  .get(userController.getMe, userController.getUser)
+  .patch(
+    userController.uploadUserPhoto,
+    userController.resizeUserPhoto,
+    userController.updateMe
+  )
+  .delete(userController.deactivateMe);
 
 //Admin-only
 
@@ -34,7 +38,10 @@ router
 router
   .route('/users/:id')
   .get(userController.getUser)
-  .patch(userController.updateUser)
+  .patch(
+    //userController.uploadUserPhoto,
+    userController.updateUser
+  )
   .delete(userController.deleteUser);
 
 module.exports = router;

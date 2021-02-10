@@ -3,3 +3,5 @@ public/
 .eslintrc.json
 .prettierrc
 config.env
+
+uploadPhoto.js

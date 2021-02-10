@@ -1,14 +1,10 @@
 const AppError = require('../libs/AppError');
 
 //JSON Web Token errors
-const handleErrorJWT = new AppError(
-  'Invalid login token. Please log in again.',
-  401
-);
-const handleExpiredJWT = new AppError(
-  'Expired login token. Please log in again.',
-  401
-);
+const handleErrorJWT = () =>
+  new AppError('Invalid login token. Please log in again.', 401);
+const handleExpiredJWT = () =>
+  new AppError('Expired login token. Please log in again.', 401);
 
 //MongoDB errors
 const handleCastErrorDB = (err) => {

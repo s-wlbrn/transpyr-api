@@ -64,7 +64,10 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Please specify the event capacity.'],
     },
-    photo: String,
+    photo: {
+      type: String,
+      default: 'default.jpg',
+    },
     createdAt: {
       type: Date,
       default: Date.now(),
@@ -102,6 +105,7 @@ const eventSchema = new mongoose.Schema(
 
 eventSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
+  next();
 });
 
 const Event = mongoose.model('Event', eventSchema);

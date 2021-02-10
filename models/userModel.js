@@ -41,7 +41,10 @@ const userSchema = new mongoose.Schema({
   resetTokenExpires: Date,
   //birthday
   ////Date
-  photo: String,
+  photo: {
+    type: String,
+    default: 'default.jpg',
+  },
   active: {
     type: Boolean,
     default: true,
@@ -61,7 +64,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.methods.correctPassword = async function (
+userSchema.methods.isCorrectPassword = async function (
   passwordAttempt,
   userPassword
 ) {

@@ -1,18 +1,18 @@
 const express = require('express');
 
-const eventController = require('../controllers/eventControllers');
+const eventController = require('../controllers/eventController');
 
 const router = express.Router();
 
 router
   .route('/')
   .get(eventController.getAllEvents)
-  .post(eventController.uploadEventPhoto, eventController.createEvent);
+  .post(eventController.createEvent);
 
 router
   .route('/:id')
   .get(eventController.getEvent)
-  .patch(eventController.updateEvent)
+  .patch(eventController.uploadEventPhoto, eventController.updateEvent)
   .delete(eventController.deleteEvent);
 
 module.exports = router;

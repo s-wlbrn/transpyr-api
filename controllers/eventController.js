@@ -1,23 +1,8 @@
 const multer = require('multer');
-const slugify = require('slugify');
-const AppError = require('../libs/AppError');
 const Event = require('../models/eventModel');
+//const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
-
-//Multer storage configuration
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/img/events');
-  },
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split('/')[1];
-    //get event id
-    cb(
-      null,
-      `event-${slugify(req.body.name, { lower: true })}-${Date.now()}.${ext}`
-    );
-  },
-});
+const AppError = require('../libs/AppError');
 
 //Validate image type
 const multerFilter = (req, file, cb) => {
@@ -28,8 +13,19 @@ const multerFilter = (req, file, cb) => {
   }
 };
 
+//for module, call upload, use fs to move file from temp dir to correct one
+//for now keep all the multer code in the controller
+
 const upload = multer({
-  storage: multerStorage,
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'public/img/events');
+    },
+    filename: (req, file, cb) => {
+      const ext = file.mimetype.split('/')[1];
+      cb(null, `${req.params.id}-${Date.now()}.${ext}`);
+    },
+  }),
   fileFilter: multerFilter,
 });
 
