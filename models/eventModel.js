@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const axios = require('axios');
+
+const asyncCatch = require('../libs/asyncCatch');
 
 const eventSchema = new mongoose.Schema(
   {
@@ -59,14 +62,30 @@ const eventSchema = new mongoose.Schema(
       required: [true, 'An event must have a description.'],
     },
     summary: String,
-    price: Number,
+    priceTiers: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+        online: Boolean,
+        capacity: Number,
+      },
+    ],
     capacity: {
       type: Number,
-      required: [true, 'Please specify the event capacity.'],
     },
     photo: {
       type: String,
       default: 'default.jpg',
+    },
+    date: {
+      type: Date,
+      required: true,
     },
     createdAt: {
       type: Date,
@@ -78,9 +97,8 @@ const eventSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
-    online: {
-      type: Boolean,
-    },
+    online: Boolean,
+    address: String,
     locations: [
       {
         type: {
@@ -102,6 +120,44 @@ const eventSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+eventSchema.pre('save', function (next) {
+  let isOnline = false;
+  let totalCapacity = 0;
+  //Add up event capacities
+  //Flag event 'online' if any ticket tier online
+  this.priceTiers.forEach((tier) => {
+    totalCapacity += tier.capacity;
+    if (tier.online === true) isOnline = true;
+  });
+
+  this.capacity = totalCapacity;
+  this.online = isOnline;
+  next();
+});
+
+eventSchema.pre('save', async function (next) {
+  try {
+    console.log(this.address);
+    if (!this.address) next();
+
+    //Fetch address coordinates from HERE API
+    const matchingLoc = await axios.get(
+      `https://geocode.search.hereapi.com/v1/geocode?q="${this.address}"&apiKey=${process.env.HERE_APIKEY}`
+    );
+    console.log(matchingLoc);
+    const { lat, lng } = matchingLoc.data.items[0].position;
+
+    //Save to locations field
+    this.locations = {
+      type: 'Point',
+      coordinates: [lng, lat],
+    };
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 eventSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
