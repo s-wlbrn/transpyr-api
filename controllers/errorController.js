@@ -41,12 +41,14 @@ const sendErrorProduction = (err, res) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
+      code: err.statusCode,
       message: err.message,
     });
   } else {
     console.log('ERROR!', err);
     res.status(500).json({
       status: 'error',
+      code: err.statusCode,
       message: 'Something went wrong.',
     });
   }

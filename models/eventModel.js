@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const axios = require('axios');
+const marked = require('marked');
+const sanitizeHTML = require('sanitize-html');
 
 const asyncCatch = require('../libs/asyncCatch');
 
@@ -83,9 +85,19 @@ const eventSchema = new mongoose.Schema(
       type: String,
       default: 'default.jpg',
     },
-    date: {
+    dateStart: {
       type: Date,
       required: true,
+    },
+    dateEnd: {
+      type: Date,
+      required: true,
+      validate: {
+        validator: function (v) {
+          return v > this.dateStart;
+        },
+        message: 'The end date must be after the start date.',
+      },
     },
     createdAt: {
       type: Date,
@@ -121,6 +133,15 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
+//VIRTUAL
+// Convert Markdown to HTML and sanitize
+eventSchema.virtual('convertedDescription').get(function () {
+  const test = this.description.replace(/\\n/g, '\n');
+  return sanitizeHTML(marked(test));
+});
+
+//MIDDLEWARE
+//
 eventSchema.pre('save', function (next) {
   let isOnline = false;
   let totalCapacity = 0;
@@ -136,16 +157,17 @@ eventSchema.pre('save', function (next) {
   next();
 });
 
+//Get coordinates from address
 eventSchema.pre('save', async function (next) {
   try {
-    console.log(this.address);
-    if (!this.address) next();
+    if (!this.address || this.locations[0].coordinates.length) next();
 
     //Fetch address coordinates from HERE API
-    const matchingLoc = await axios.get(
-      `https://geocode.search.hereapi.com/v1/geocode?q="${this.address}"&apiKey=${process.env.HERE_APIKEY}`
+    const matchingLoc = await asyncCatch(
+      axios.get(
+        `https://geocode.search.hereapi.com/v1/geocode?q="${this.address}"&apiKey=${process.env.HERE_APIKEY}`
+      )
     );
-    console.log(matchingLoc);
     const { lat, lng } = matchingLoc.data.items[0].position;
 
     //Save to locations field
@@ -159,6 +181,7 @@ eventSchema.pre('save', async function (next) {
   }
 });
 
+//Create slug
 eventSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
