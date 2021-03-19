@@ -11,25 +11,24 @@ const eventSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, 'An event must have a name.'],
-      unique: true,
       minlength: [8, 'An event name should have at least 8 characters.'],
     },
-    eventType: {
+    type: {
       type: String,
       required: [true, 'Please specify an event type.'],
       enum: [
-        'lecture',
-        'class',
-        'performance',
-        'social',
-        'workshop',
-        'conference',
-        'convention',
-        'expo',
-        'game',
-        'rally',
-        'screening',
-        'tour',
+        'Lecture',
+        'Class',
+        'Performance',
+        'Social',
+        'Workshop',
+        'Conference',
+        'Convention',
+        'Expo',
+        'Game',
+        'Rally',
+        'Screening',
+        'Tour',
       ],
     },
     category: {
@@ -38,7 +37,7 @@ const eventSchema = new mongoose.Schema(
       enum: [
         'Business',
         'Food',
-        'Health and Lifestyle',
+        'Health & Lifestyle',
         'Music',
         'Vehicle',
         'Charity',
@@ -51,11 +50,11 @@ const eventSchema = new mongoose.Schema(
         'Politics',
         'Spirituality',
         'School',
-        'Science and Technology',
+        'Science and technology',
         'Holiday',
-        'Sports and Fitness',
+        'Sports and fitness',
         'Travel',
-        'Outdoor & Recreation',
+        'Outdoor & recreation',
         'Other',
       ],
     },
@@ -64,9 +63,13 @@ const eventSchema = new mongoose.Schema(
       required: [true, 'An event must have a description.'],
     },
     summary: String,
-    priceTiers: [
+    ticketTiers: [
       {
-        name: {
+        tierName: {
+          type: String,
+          required: true,
+        },
+        tierDescription: {
           type: String,
           required: true,
         },
@@ -74,27 +77,30 @@ const eventSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
-        online: Boolean,
-        capacity: Number,
+        online: {
+          type: Boolean,
+          required: true,
+        },
+        capacity: {
+          type: Number,
+          required: true,
+        },
       },
     ],
-    capacity: {
-      type: Number,
-    },
     photo: {
       type: String,
       default: 'default.jpg',
     },
-    dateStart: {
+    dateTimeStart: {
       type: Date,
       required: true,
     },
-    dateEnd: {
+    dateTimeEnd: {
       type: Date,
       required: true,
       validate: {
         validator: function (v) {
-          return v > this.dateStart;
+          return v > this.dateTimeStart;
         },
         message: 'The end date must be after the start date.',
       },
@@ -109,23 +115,24 @@ const eventSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
-    online: Boolean,
     address: String,
-    locations: [
-      {
-        type: {
-          type: String,
-          enum: ['Point'],
-          default: ['Point'],
-          required: true,
-        },
-        coordinates: {
-          type: [Number],
-          required: true,
-        },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: ['Point'],
+        required: true,
       },
-    ],
+      coordinates: {
+        type: [Number],
+        required: true,
+      },
+    },
     slug: String,
+    published: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -140,45 +147,15 @@ eventSchema.virtual('convertedDescription').get(function () {
   return sanitizeHTML(marked(test));
 });
 
-//MIDDLEWARE
-//
-eventSchema.pre('save', function (next) {
-  let isOnline = false;
-  let totalCapacity = 0;
-  //Add up event capacities
-  //Flag event 'online' if any ticket tier online
-  this.priceTiers.forEach((tier) => {
-    totalCapacity += tier.capacity;
-    if (tier.online === true) isOnline = true;
+eventSchema.virtual('priceDisplay').get(function () {
+  const prices = this.ticketTiers.map((tier) => tier.price);
+  prices.sort(function (a, b) {
+    return a - b;
   });
+  let priceDisplay = prices[0] ? `$${prices[0]}` : 'Free';
+  if (prices.pop() > prices[0]) priceDisplay += '+';
 
-  this.capacity = totalCapacity;
-  this.online = isOnline;
-  next();
-});
-
-//Get coordinates from address
-eventSchema.pre('save', async function (next) {
-  try {
-    if (!this.address || this.locations[0].coordinates.length) next();
-
-    //Fetch address coordinates from HERE API
-    const matchingLoc = await asyncCatch(
-      axios.get(
-        `https://geocode.search.hereapi.com/v1/geocode?q="${this.address}"&apiKey=${process.env.HERE_APIKEY}`
-      )
-    );
-    const { lat, lng } = matchingLoc.data.items[0].position;
-
-    //Save to locations field
-    this.locations = {
-      type: 'Point',
-      coordinates: [lng, lat],
-    };
-    next();
-  } catch (err) {
-    next(err);
-  }
+  return priceDisplay;
 });
 
 //Create slug

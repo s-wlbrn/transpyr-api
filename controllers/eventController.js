@@ -1,8 +1,11 @@
 const multer = require('multer');
+const sharp = require('sharp');
 const Event = require('../models/eventModel');
 //const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
 const AppError = require('../libs/AppError');
+
+const multerStorage = multer.memoryStorage();
 
 //Validate image type
 const multerFilter = (req, file, cb) => {
@@ -17,17 +20,21 @@ const multerFilter = (req, file, cb) => {
 //for now keep all the multer code in the controller
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, 'public/img/events');
-    },
-    filename: (req, file, cb) => {
-      const ext = file.mimetype.split('/')[1];
-      cb(null, `${req.params.id}-${Date.now()}.${ext}`);
-    },
-  }),
+  storage: multerStorage,
   fileFilter: multerFilter,
 });
+
+exports.convertEventPhotoJpeg = (req, res, next) => {
+  if (!req.file) return next();
+
+  req.file.filename = `${req.params.id}.jpeg`;
+  sharp(req.file.buffer)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/events/${req.file.filename}`);
+
+  next();
+};
 
 exports.uploadEventPhoto = upload.single('photo');
 

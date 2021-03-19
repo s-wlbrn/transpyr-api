@@ -22,6 +22,9 @@ const app = express();
 
 //Global Middleware
 
+//Serve static files
+app.use('/static', express.static('public'));
+
 //Enable CORS
 app.use(cors());
 
@@ -42,7 +45,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 //// Express body parser
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '5mb' }));
 
 //// Data sanitization
 app.use(mongoSanitize());

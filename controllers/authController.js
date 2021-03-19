@@ -47,7 +47,7 @@ exports.signup = asyncCatch(async (req, res, next) => {
   createSendToken(newUser, 201, res);
 });
 
-exports.login = asyncCatch(async (req, res, next) => {
+exports.signin = asyncCatch(async (req, res, next) => {
   const { email, password } = req.body;
 
   //check if both email and password are entered

@@ -6,13 +6,13 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-//no protect
+//Public routes
 router.post('/signup', authController.signup);
-router.post('/login', authController.login);
+router.post('/signin', authController.signin);
 //router.post('/forgot-password', authController.forgotPassword);
 //router.patch('/reset-password/:token', authController.resetPassword);
 
-//protect
+//Protected routes
 router.use(authController.protectRoute);
 
 //current user routes
