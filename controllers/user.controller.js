@@ -1,6 +1,6 @@
 const multer = require('multer');
 const sharp = require('sharp');
-const User = require('../models/userModel');
+const User = require('../models/user.model');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const filterFields = require('../libs/filterFields');

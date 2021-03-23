@@ -1,7 +1,7 @@
 const express = require('express');
 
-const eventController = require('../controllers/eventController');
-const authController = require('../controllers/authController');
+const eventController = require('../controllers/event.controller');
+const authController = require('../controllers/auth.controller');
 
 const router = express.Router();
 
@@ -13,7 +13,8 @@ router
 router
   .route('/:id')
   .get(eventController.getEvent)
-  .patch(
+  .patch(eventController.findEventAndUpdate)
+  .put(
     eventController.uploadEventPhoto,
     eventController.convertEventPhotoJpeg,
     eventController.updateEvent

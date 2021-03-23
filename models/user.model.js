@@ -52,6 +52,15 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret.password;
+    delete ret._id;
+  },
+});
+
 userSchema.pre('save', async function (next) {
   //hash pw only if it was modified
   if (!this.isModified('password')) return next();

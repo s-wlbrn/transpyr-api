@@ -11,7 +11,7 @@ const cors = require('cors');
 const AppError = require('./libs/AppError');
 
 //import global error handling middleware
-const globalErrorHandler = require('./controllers/errorController');
+const globalErrorHandler = require('./controllers/error.controller');
 
 //import routers
 const eventRouter = require('./routes/eventRoutes');

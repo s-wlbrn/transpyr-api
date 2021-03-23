@@ -2,7 +2,8 @@ const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const asyncCatch = require('../libs/asyncCatch');
 const AppError = require('../libs/AppError');
-const User = require('../models/userModel');
+const User = require('../models/user.model');
+const RefreshToken = require('../models/refresh-token.model');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -10,11 +11,22 @@ const signToken = (id) => {
   });
 };
 
-const createSendToken = (user, statusCode, res) => {
+const generateRefreshToken = (userId) => {
+  return new RefreshToken({
+    user: userId,
+    expires: new Date(Date.now() + 604800000),
+  });
+};
+
+const createSendToken = asyncCatch(async (user, statusCode, res) => {
   const token = signToken(user._id);
+  const refreshToken = generateRefreshToken(user._id);
+
+  await refreshToken.save();
+
   const cookieOptions = {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN + 8000000000
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN + 604800000
     ),
     secure: false,
     httpOnly: true,
@@ -24,7 +36,7 @@ const createSendToken = (user, statusCode, res) => {
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   //configure cookie
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie('refreshToken', refreshToken.token, cookieOptions);
 
   res.status(statusCode).json({
     status: 'success',
@@ -33,7 +45,7 @@ const createSendToken = (user, statusCode, res) => {
       user: { ...user._doc, password: undefined },
     },
   });
-};
+});
 
 exports.signup = asyncCatch(async (req, res, next) => {
   const newUser = await User.create({
@@ -44,7 +56,7 @@ exports.signup = asyncCatch(async (req, res, next) => {
     //role?
   });
 
-  createSendToken(newUser, 201, res);
+  await createSendToken(newUser, 201, res);
 });
 
 exports.signin = asyncCatch(async (req, res, next) => {
@@ -67,7 +79,7 @@ exports.signin = asyncCatch(async (req, res, next) => {
   }
 
   //send token
-  createSendToken(user, 200, res);
+  await createSendToken(user, 200, res);
 });
 
 exports.protectRoute = asyncCatch(async (req, res, next) => {

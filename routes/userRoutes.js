@@ -1,6 +1,6 @@
 const express = require('express');
-const userController = require('../controllers/userController');
-const authController = require('../controllers/authController');
+const userController = require('../controllers/user.controller');
+const authController = require('../controllers/auth.controller');
 
 // const upload = multer({ dest: 'public/img/users' });
 
@@ -36,7 +36,7 @@ router
   .post(userController.createUser);
 
 router
-  .route('/users/:id')
+  .route('/:id')
   .get(userController.getUser)
   .patch(
     //userController.uploadUserPhoto,

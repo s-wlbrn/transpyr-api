@@ -38,10 +38,10 @@ exports.updateOne = (Model) =>
   asyncCatch(async (req, res, next) => {
     //possibly move
     if (req.file) req.body.photo = req.file.filename;
-
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
+      context: 'query',
     });
 
     if (!doc) {

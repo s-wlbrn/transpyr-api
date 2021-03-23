@@ -1,6 +1,6 @@
 const multer = require('multer');
 const sharp = require('sharp');
-const Event = require('../models/eventModel');
+const Event = require('../models/event.model');
 //const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
 const AppError = require('../libs/AppError');
@@ -34,6 +34,22 @@ exports.convertEventPhotoJpeg = (req, res, next) => {
     .toFile(`public/img/events/${req.file.filename}`);
 
   next();
+};
+
+exports.findEventAndUpdate = async (req, res, next) => {
+  const doc = await Event.findById(req.params.id);
+
+  if (!doc) {
+    return next(new AppError('Resource not found.', 404));
+  }
+
+  Object.assign(doc, req.body);
+  await doc.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: doc,
+  });
 };
 
 exports.uploadEventPhoto = upload.single('photo');
