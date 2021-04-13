@@ -9,14 +9,18 @@ const router = express.Router();
 //Public routes
 router.post('/signup', authController.signup);
 router.post('/signin', authController.signin);
-//router.post('/forgot-password', authController.forgotPassword);
-//router.patch('/reset-password/:token', authController.resetPassword);
+router.post('/refresh-token', authController.refreshToken);
+router.post('/forgot-password', authController.forgotPassword);
+router.patch('/reset-password/:token', authController.resetPassword);
 
 //Protected routes
 router.use(authController.protectRoute);
 
+//revoke refresh token
+router.post('/revoke-token', authController.revokeToken);
+
 //current user routes
-//router.patch('/update-password', authController.updatePassword);
+router.patch('/update-password', authController.updatePassword);
 
 router
   .route('/me')

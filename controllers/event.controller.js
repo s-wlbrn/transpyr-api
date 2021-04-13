@@ -4,6 +4,7 @@ const Event = require('../models/event.model');
 //const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
 const AppError = require('../libs/AppError');
+const asyncCatch = require('../libs/asyncCatch');
 
 const multerStorage = multer.memoryStorage();
 
@@ -36,7 +37,12 @@ exports.convertEventPhotoJpeg = (req, res, next) => {
   next();
 };
 
-exports.findEventAndUpdate = async (req, res, next) => {
+exports.attachEventOrganizer = (req, res, next) => {
+  req.body.organizer = req.user._id;
+  next();
+};
+
+exports.findEventAndUpdate = asyncCatch(async (req, res, next) => {
   const doc = await Event.findById(req.params.id);
 
   if (!doc) {
@@ -50,7 +56,7 @@ exports.findEventAndUpdate = async (req, res, next) => {
     status: 'success',
     data: doc,
   });
-};
+});
 
 exports.uploadEventPhoto = upload.single('photo');
 

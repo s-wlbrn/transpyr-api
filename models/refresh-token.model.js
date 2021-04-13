@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const refreshTokenSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.ObjectId,
     ref: 'User',
   },
   token: String,
@@ -39,6 +39,7 @@ refreshTokenSchema.virtual('isActive').get(function () {
 
 //MIDDLEWARE
 refreshTokenSchema.pre('save', function (next) {
+  if (this.token) return next();
   this.token = crypto.randomBytes(40).toString('hex');
 
   next();

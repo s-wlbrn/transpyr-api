@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -38,12 +39,15 @@ const userSchema = new mongoose.Schema({
   },
   passwordChangedAt: Date,
   passwordResetToken: String,
-  resetTokenExpires: Date,
-  //birthday
-  ////Date
+  passwordResetExpires: Date,
   photo: {
     type: String,
     default: 'default.jpg',
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
   },
   active: {
     type: Boolean,
@@ -61,6 +65,20 @@ userSchema.set('toJSON', {
   },
 });
 
+// userSchema.virtual('events', {
+//   ref: 'Event',
+//   localField: '_id',
+//   foreignField: 'organizer',
+// });
+
+// const autoPopulate = function (next) {
+//   this.populate('events');
+//   next();
+// };
+// userSchema.pre(/^find/, autoPopulate);
+
+//MIDDLEWARE
+//Hash password
 userSchema.pre('save', async function (next) {
   //hash pw only if it was modified
   if (!this.isModified('password')) return next();
@@ -73,6 +91,14 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+//METHODS
 userSchema.methods.isCorrectPassword = async function (
   passwordAttempt,
   userPassword
@@ -87,10 +113,22 @@ userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
       10
     );
 
-    return jwtTimestamp > formattedTimestamp;
+    return jwtTimestamp < formattedTimestamp;
   }
 
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);

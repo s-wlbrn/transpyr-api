@@ -6,6 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 //import custom error class
 const AppError = require('./libs/AppError');
@@ -16,6 +17,7 @@ const globalErrorHandler = require('./controllers/error.controller');
 //import routers
 const eventRouter = require('./routes/eventRoutes');
 const userRouter = require('./routes/userRoutes');
+const bookingRouter = require('./routes/bookingRoutes');
 
 //create app
 const app = express();
@@ -26,7 +28,15 @@ const app = express();
 app.use('/static', express.static('public'));
 
 //Enable CORS
-app.use(cors());
+app.use(cors({ credentials: true, origin: true }));
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', 'http://localhost:3001'); // update to match the domain you will make the request from
+//   res.header(
+//     'Access-Control-Allow-Headers',
+//     'Origin, X-Requested-With, Content-Type, Accept'
+//   );
+//   next();
+// });
 
 //// HTTP security headers
 app.use(helmet());
@@ -47,6 +57,9 @@ app.use('/api', limiter);
 //// Express body parser
 app.use(express.json({ limit: '5mb' }));
 
+//// Express cookie parser
+app.use(cookieParser());
+
 //// Data sanitization
 app.use(mongoSanitize());
 
@@ -56,6 +69,7 @@ app.use(hpp());
 //Mount routes
 app.use('/api/events', eventRouter);
 app.use('/api/users', userRouter);
+app.use('/api/bookings', bookingRouter);
 
 //Catch requests to invalid routes
 app.all('*', (req, res, next) => {

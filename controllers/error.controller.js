@@ -3,9 +3,9 @@ const AppError = require('../libs/AppError');
 //JSON Web Token errors
 const handleErrorJWT = () =>
   new AppError('Invalid login token. Please log in again.', 401);
-const handleExpiredJWT = () =>
-  new AppError('Expired login token. Please log in again.', 401);
-
+const handleExpiredJWT = (err) => {
+  return new AppError('Expired login token. Please log in again.', 401);
+};
 //MongoDB errors
 const handleCastErrorDB = (err) => {
   const { path, value } = err;
@@ -30,6 +30,7 @@ const handleValidationErrorDB = (err) => {
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
+    statusCode: err.statusCode,
     error: err,
     message: err.message,
     stack: err.stack,
@@ -41,14 +42,14 @@ const sendErrorProduction = (err, res) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
-      code: err.statusCode,
+      statusCode: err.statusCode,
       message: err.message,
     });
   } else {
     console.log('ERROR!', err);
     res.status(500).json({
       status: 'error',
-      code: err.statusCode,
+      statusCode: err.statusCode,
       message: 'Something went wrong.',
     });
   }
@@ -67,7 +68,7 @@ module.exports = (err, req, res, next) => {
 
   //Handle JWT errors
   if (error.name === 'JsonWebTokenError') error = handleErrorJWT();
-  if (error.name === 'TokenExpiredError') error = handleExpiredJWT();
+  if (error.name === 'TokenExpiredError') error = handleExpiredJWT(err);
 
   //Handle MongoDB errors
   if (err.name === 'CastError') error = handleCastErrorDB(error);

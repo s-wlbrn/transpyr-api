@@ -45,6 +45,7 @@ exports.resizeUserPhoto = (req, res, next) => {
 //Me controllers
 exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
+  next();
 };
 
 exports.updateMe = asyncCatch(async (req, res, next) => {
