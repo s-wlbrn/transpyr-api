@@ -49,6 +49,10 @@ exports.findEventAndUpdate = asyncCatch(async (req, res, next) => {
     return next(new AppError('Resource not found.', 404));
   }
 
+  if (String(doc.organizer) !== String(req.user._id)) {
+    return next(new AppError('Only the organizer may edit this event.', 403));
+  }
+
   Object.assign(doc, req.body);
   await doc.save();
 

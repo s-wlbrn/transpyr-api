@@ -14,6 +14,10 @@ const bookingSchema = new mongoose.Schema(
     },
     email: {
       type: String,
+      default: this.bookingEmail,
+    },
+    bookingEmail: {
+      type: String,
       required: [true, 'Booking must be associated with an email'],
     },
     name: {
