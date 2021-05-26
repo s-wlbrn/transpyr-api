@@ -2,80 +2,101 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please provide a name.'],
-  },
-  email: {
-    type: String,
-    required: [true, 'Please enter your email address.'],
-    unique: true,
-    lowercase: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email address.',
-    ],
-  },
-  password: {
-    type: String,
-    required: [true, 'Please enter a password.'],
-    minlength: [8, 'Your password must be at lease 8 characters long.'],
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please enter your password again to confirm.'],
-    validate: {
-      validator: function (pw) {
-        return pw === this.password;
-      },
-      message: 'Passwords do not match.',
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Please provide a name.'],
+      maxLength: [42, 'Name must be under 42 characters.'],
     },
+    email: {
+      type: String,
+      required: [true, 'Please enter your email address.'],
+      unique: true,
+      lowercase: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid email address.',
+      ],
+    },
+    password: {
+      type: String,
+      required: [true, 'Please enter a password.'],
+      minlength: [8, 'Your password must be at lease 8 characters long.'],
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please enter your password again to confirm.'],
+      validate: {
+        validator: function (pw) {
+          return pw === this.password;
+        },
+        message: 'Passwords do not match.',
+      },
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now(),
+    },
+    photo: {
+      type: String,
+      default: 'default.jpg',
+    },
+    tagline: {
+      type: String,
+      max: [150, 'A user bio cannot exceed 150 characters.'],
+    },
+    bio: {
+      type: String,
+      max: [1000, 'A user bio cannot exceed 1000 characters.'],
+    },
+    interests: {
+      type: String,
+      max: [500, 'A user bio cannot exceed 500 characters.'],
+    },
+    favorites: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Event',
+      },
+    ],
+    privateFavorites: {
+      type: Boolean,
+      default: false,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  photo: {
-    type: String,
-    default: 'default.jpg',
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user',
-  },
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
-});
+  { selectPopulatedPaths: false }
+);
 
 userSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
   transform: function (doc, ret) {
     delete ret.password;
-    delete ret._id;
   },
 });
 
-// userSchema.virtual('events', {
-//   ref: 'Event',
-//   localField: '_id',
-//   foreignField: 'organizer',
-// });
-
-// const autoPopulate = function (next) {
-//   this.populate('events');
-//   next();
-// };
-// userSchema.pre(/^find/, autoPopulate);
+//VIRTUAL FIELDS
+userSchema.virtual('events', {
+  ref: 'Event',
+  localField: '_id',
+  foreignField: 'organizer',
+  justOne: false,
+});
 
 //MIDDLEWARE
 //Hash password

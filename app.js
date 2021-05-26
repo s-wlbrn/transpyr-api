@@ -15,9 +15,9 @@ const AppError = require('./libs/AppError');
 const globalErrorHandler = require('./controllers/error.controller');
 
 //import routers
-const eventRouter = require('./routes/eventRoutes');
-const userRouter = require('./routes/userRoutes');
-const bookingRouter = require('./routes/bookingRoutes');
+const eventRouter = require('./routes/event.routes');
+const userRouter = require('./routes/user.routes');
+const bookingRouter = require('./routes/booking.routes');
 
 //create app
 const app = express();

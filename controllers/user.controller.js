@@ -6,6 +6,8 @@ const asyncCatch = require('../libs/asyncCatch');
 const filterFields = require('../libs/filterFields');
 //const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
+const filterQueryList = require('../libs/filterQueryList');
+const APIFeatures = require('../libs/apiFeatures');
 
 const multerStorage = multer.memoryStorage();
 
@@ -31,7 +33,7 @@ exports.uploadUserPhoto = upload.single('photo');
 exports.resizeUserPhoto = (req, res, next) => {
   if (!req.file) return next();
 
-  req.file.filename = `${req.user.id}-${Date.now()}.jpeg`;
+  req.file.filename = `${req.user.id}.jpeg`;
 
   sharp(req.file.buffer)
     .resize(500, 500)
@@ -60,7 +62,16 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
   }
 
   // Filter all fields but 'name' and 'email'
-  const filteredBody = filterFields(req.body, 'name', 'email');
+  const filteredBody = filterFields(
+    req.body,
+    'name',
+    'email',
+    'privateFavorites',
+    'favorites',
+    'bio',
+    'interests',
+    'tagline'
+  );
   if (req.file) filteredBody.photo = req.file.filename;
 
   //Update User
@@ -74,6 +85,52 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
     status: 'success',
     data: {
       user: updatedUser,
+    },
+  });
+});
+
+exports.getUserProfile = asyncCatch(async (req, res, next) => {
+  const eventFields =
+    'id name dateTimeStart dateTimeEnd photo ticketTiers totalBookings';
+  const allowedFields =
+    'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events';
+
+  //ensure requested fields are subset of default ones, or use defult ones
+  req.query.fields =
+    filterQueryList(req.query.fields, allowedFields) || allowedFields;
+
+  const query = User.findById(req.params.id);
+  //populate events or favorites only if fields selected
+  //populate must come before select call for select to work
+  const fieldsArray = req.query.fields.split(',');
+  if (fieldsArray.includes('favorites')) {
+    query.populate('favorites', eventFields);
+  }
+  if (fieldsArray.includes('events')) {
+    query.populate('events', eventFields);
+  }
+
+  //perform select
+  const queryFeatures = new APIFeatures(query, req.query).limit();
+
+  //paginate favorites
+  const limit = req.query.paginate ? Number(req.query.paginate.limit || 4) : 4;
+  const skip = req.query.paginate
+    ? limit * ((req.query.paginate.page || 0) - 1)
+    : 0;
+  queryFeatures.query = queryFeatures.query.slice('favorites', [skip, limit]);
+
+  const doc = await queryFeatures.query;
+
+  //remove favorites field if private
+  if (doc.privateFavorites) {
+    doc.favorites = undefined;
+  }
+  doc.privateFavorites = undefined;
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: doc,
     },
   });
 });

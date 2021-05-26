@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
 const slugify = require('slugify');
 const marked = require('marked');
 const sanitizeHTML = require('sanitize-html');
-const { Booking } = require('./booking.model');
 
 const ticketTiersSchema = new mongoose.Schema(
   {
@@ -24,7 +24,7 @@ const ticketTiersSchema = new mongoose.Schema(
     },
     capacity: {
       type: Number,
-      required: true,
+      default: 0,
     },
     limitPerCustomer: {
       type: Number,
@@ -123,6 +123,7 @@ const eventSchema = new mongoose.Schema(
     organizer: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
+      required: [true, 'An event must have an organizer.'],
     },
     address: String,
     location: {
@@ -137,32 +138,67 @@ const eventSchema = new mongoose.Schema(
         required: true,
       },
     },
+    totalCapacity: {
+      type: Number,
+      default: 0,
+      min: [0, 'Capacity cannot be negative'],
+      validate: {
+        validator: function (v) {
+          const ticketCapacities = this.ticketTiers.reduce(
+            (acc, ticket) => acc + ticket.capacity,
+            0
+          );
+
+          return v > 0 ? v >= ticketCapacities : true;
+        },
+        message:
+          'The total capacity cannot be less than the ticket capacities.',
+      },
+    },
+    feePolicy: {
+      type: String,
+      enum: {
+        values: ['absorbFee', 'passFee'],
+        message: "Fee policy must be either 'absorbFee' or 'passFee'",
+      },
+    },
+    refundPolicy: String,
+    language: {
+      type: String,
+      default: 'English',
+    },
     slug: String,
+    online: Boolean,
     published: {
       type: Boolean,
       default: false,
+      // validate: {
+      //   validator: function (v) {
+      //     if (v) return !!this.feePolicy;
+      //   },
+      //   message: 'An event cannot be published without a fee policy.',
+      // },
     },
   },
   {
+    selectPopulatedPaths: false,
     toObject: { virtuals: true },
   }
 );
 
+//Settings
 eventSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
-  transform: function (doc, ret) {
-    delete ret._id;
-  },
 });
 
 ticketTiersSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
-  transform: function (doc, ret) {
-    delete ret._id;
-  },
 });
+
+//Plugins
+eventSchema.plugin(mongoosePaginate);
 
 //VIRTUAL
 // Convert Markdown to HTML and sanitize
@@ -181,14 +217,6 @@ eventSchema.virtual('convertedDescription').get(function () {
 
 //   return priceDisplay;
 // });
-
-eventSchema.virtual('totalCapacity').get(function () {
-  const totalCapacity = this.ticketTiers.reduce(
-    (acc, ticket) => acc + ticket.capacity,
-    0
-  );
-  return totalCapacity;
-});
 
 eventSchema.virtual('ticketTiers.numBookings', {
   ref: 'Booking',
@@ -211,6 +239,13 @@ ticketTiersSchema.virtual('ticketSoldOut').get(function () {
   return soldOut;
 });
 
+eventSchema.virtual('soldOut').get(function () {
+  const soldOut = !this.totalCapacity
+    ? false
+    : !(this.totalBookings < this.totalCapacity);
+  return soldOut;
+});
+
 //MIDDLEWARE
 
 const autoPopulate = function (next) {
@@ -224,6 +259,18 @@ eventSchema.pre(/^find/, autoPopulate);
 //Create slug
 eventSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+//Create online field
+eventSchema.pre('save', function (next) {
+  let isOnline = false;
+  //Flag event 'online' if any ticket tier online
+  this.ticketTiers.forEach((tier) => {
+    if (tier.online === true) isOnline = true;
+  });
+
+  this.online = isOnline;
   next();
 });
 

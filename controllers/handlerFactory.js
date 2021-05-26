@@ -18,9 +18,12 @@ exports.createOne = (Model) =>
 
 exports.getOne = (Model) =>
   asyncCatch(async (req, res, next) => {
-    const query = Model.findById(req.params.id);
+    const queryFeatures = new APIFeatures(
+      Model.findById(req.params.id),
+      req.query
+    ).limit();
     //populate?
-    const doc = await query;
+    const doc = await queryFeatures.query;
 
     if (!doc) {
       return next(new AppError('Resource not found.', 404));
@@ -78,14 +81,39 @@ exports.getAll = (Model) =>
       .filter()
       .sort()
       .limit()
-      .paginate();
-    const docs = await queryFeatures.query;
+      .loc();
+
+    let documents = [];
+    let data = {};
+    //pagination
+    if (req.query.paginate) {
+      const pagination = JSON.parse(req.query.paginate);
+      const page = Number(pagination.page) || 1;
+      const limit = Number(pagination.limit) || 10;
+
+      const response = await Model.paginate(queryFeatures.query, {
+        page,
+        limit,
+      });
+      documents = response.docs;
+
+      const { total, pages } = response;
+      data = {
+        data: documents,
+        total,
+        page,
+        pages,
+      };
+    } else {
+      documents = await queryFeatures.query;
+      data = {
+        data: documents,
+      };
+    }
 
     res.status(200).json({
       status: 'success',
-      results: docs.length,
-      data: {
-        data: docs,
-      },
+      results: documents.length,
+      data,
     });
   });

@@ -46,44 +46,58 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   }, {});
 
   //Create line_items object for Stripe
+  // const lineItems = ticketKeys.map((ticketId) => {
+  //   return {
+  //     name: `${event.name}: ${ticketTiersMap[ticketId].tierName}`,
+  //     description: ticketTiersMap[ticketId].tierDescription,
+  //     //  images: ''
+  //     amount: ticketTiersMap[ticketId].price * 100,
+  //     currency: 'usd',
+  //     quantity: tickets[ticketId].quantity,
+  //   };
+  // });
+
   const lineItems = ticketKeys.map((ticketId) => {
     return {
-      name: `${event.name}: ${ticketTiersMap[ticketId].tierName}`,
-      description: ticketTiersMap[ticketId].tierDescription,
-      //  images: ''
-      amount: ticketTiersMap[ticketId].price * 100,
-      currency: 'usd',
-      quantity: tickets[ticketId].quantity,
+      price_data: {
+        currency: 'usd',
+        unit_amount: Math.floor(ticketTiersMap[ticketId].price * 1.03 * 100),
+        product_data: {
+          name: `${event.name}: ${ticketTiersMap[ticketId].tierName}`,
+          description: ticketTiersMap[ticketId].tierDescription,
+        },
+      },
+      quantity: tickets[ticketId],
     };
   });
 
-  //Create tickets array for booking documents
-  const ticketsArray = ticketKeys.flatMap((ticketId) =>
-    tickets[ticketId].bookings.map((booking) => {
-      return {
-        ...booking,
-        user: user.id,
-        bookingEmail: customerEmail,
-        event: req.params.eventId,
+  //Create tickets array for booking
+  const ticketsArray = ticketKeys.flatMap((ticketId) => {
+    const individualBookings = [];
+    // create booking objects with ticket id and price according to quantity
+    for (let i = 0; i < tickets[ticketId]; i += 1) {
+      individualBookings.push({
         ticket: ticketId,
         price: ticketTiersMap[ticketId].price,
-      };
-    })
-  );
+      });
+    }
+    return individualBookings;
+  });
 
   //TEMP: Stringify the object to send to createCheckoutBookings as a query string
   const queryString = qs.stringify({
+    name: req.body.name,
     event: req.params.eventId,
     user: user.id,
     tickets: ticketsArray,
     email: customerEmail,
   });
 
-  console.log(qs.parse(queryString));
-
+  console.log(lineItems);
   //create checkout session
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
+    mode: 'payment',
     //TEMPORARY: Creating booking documents requires stripe webhooks once app is deployed. Query string workaround is not secure.
     //This should be a special page on the front end that displays a spinner and calls a temp createCheckoutBookings route to call func
     success_url: `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/create?${queryString}`,
@@ -96,27 +110,34 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   //send to client
   res.status(200).json({
     status: 'success',
-    session,
+    id: session.id,
   });
 });
 
 exports.createCheckoutBookings = async (req, res, next) => {
   if (!req.query) return next(new AppError('Invalid checkout session.', 400));
 
-  const { event, user, email, tickets } = qs.parse(
+  //parse query string with qs directly since Express isn't doing it right
+  const { name, event, user, email, tickets } = qs.parse(
     req.originalUrl.split('?')[1]
   );
 
-  if (!event || !email || !tickets) return next();
+  if (!event || !email || !tickets || !name)
+    return next(new AppError('Invalid checkout session.', 400));
 
+  //TEMP: qs bug is putting } at the end of email field
+  let fixedEmail = email.split('');
+  fixedEmail.pop();
+  fixedEmail = fixedEmail.join('');
+
+  //create bookings
   const bookings = await Promise.all(
     tickets.map(async (ticket) => {
       return Booking.create({
         event,
         user,
-        bookingEmail: email,
-        name: ticket.name,
-        email: ticket.email,
+        email: fixedEmail,
+        name,
         ticket: ticket.ticket,
         price: ticket.price,
       });
@@ -132,7 +153,7 @@ exports.createCheckoutBookings = async (req, res, next) => {
 };
 
 exports.createBookings = asyncCatch(async (req, res, next) => {
-  const { event, user, email, tickets } = req.body;
+  const { name, event, user, email, tickets } = req.body;
 
   const bookings = await Promise.all(
     tickets.map(async (ticket) => {
@@ -140,7 +161,7 @@ exports.createBookings = asyncCatch(async (req, res, next) => {
         event,
         user,
         email,
-        name: ticket.name,
+        name,
         ticket: ticket.ticket,
         price: ticket.ticket.price,
       });

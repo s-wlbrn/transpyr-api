@@ -2,28 +2,28 @@ const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema(
   {
-    event: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Event',
-      required: [true, 'Booking must belong to an event.'],
+    name: {
+      type: String,
+      required: [true, 'Booking must have a name.'],
+    },
+    email: {
+      type: String,
+      required: [true, 'Booking must be associated with an email'],
     },
     user: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       //required: [true, 'Booking must belong to a user.'],
     },
-    email: {
-      type: String,
-      default: this.bookingEmail,
+    event: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Event',
+      required: [true, 'Booking must belong to an event.'],
     },
-    bookingEmail: {
-      type: String,
-      required: [true, 'Booking must be associated with an email'],
-    },
-    name: {
-      type: String,
-      required: [true, 'Booking must have a name.'],
-    },
+    // email: {
+    //   type: String,
+    //   default: this.bookingEmail,
+    // },
     ticket: {
       type: mongoose.Schema.ObjectId,
       ref: 'Event.ticketTiers',

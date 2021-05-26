@@ -24,9 +24,10 @@ router.post(
 router
   .route('/:id')
   //Update event
-  .patch(eventController.findEventAndUpdate)
+  .put(eventController.getAndAuthorizeEvent, eventController.findEventAndUpdate)
   //Upload event photo
-  .put(
+  .patch(
+    eventController.getAndAuthorizeEvent,
     eventController.uploadEventPhoto,
     eventController.convertEventPhotoJpeg,
     eventController.updateEvent
@@ -34,4 +35,10 @@ router
   //Delete event
   .delete(eventController.deleteEvent);
 
+router.put(
+  '/:id/publish-event',
+  eventController.getAndAuthorizeEvent,
+  eventController.publishEvent,
+  eventController.updateEvent
+);
 module.exports = router;

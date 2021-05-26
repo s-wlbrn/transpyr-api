@@ -28,6 +28,7 @@ const handleValidationErrorDB = (err) => {
 
 //Error data for production and development environments
 const sendErrorDev = (err, res) => {
+  console.log('ERROR!', err);
   res.status(err.statusCode).json({
     status: err.status,
     statusCode: err.statusCode,

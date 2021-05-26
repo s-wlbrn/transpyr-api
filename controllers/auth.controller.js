@@ -60,6 +60,7 @@ const createSendToken = async (user, statusCode, res, refreshToken = null) => {
     },
   });
 };
+
 exports.signup = asyncCatch(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -110,9 +111,7 @@ exports.forgotPassword = async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   //email to user
-
   const resetURL = `${req.protocol}://${process.env.FRONTEND_HOST}/users/forgot-password/${resetToken}`;
-
   try {
     await new Email(user, resetURL).sendPasswordReset();
 
@@ -183,7 +182,7 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
   user.passwordConfirm = newPasswordConfirm;
   await user.save();
 
-  await createSendToken(user, 200, res);
+  next();
 });
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {

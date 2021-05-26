@@ -12,6 +12,7 @@ router.post('/signin', authController.signin);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/forgot-password', authController.forgotPassword);
 router.patch('/reset-password/:token', authController.resetPassword);
+router.get('/profile/:id', userController.getUserProfile);
 
 //Protected routes
 router.use(authController.protectRoute);
@@ -20,7 +21,11 @@ router.use(authController.protectRoute);
 router.post('/revoke-token', authController.revokeToken);
 
 //current user routes
-router.patch('/update-password', authController.updatePassword);
+router.patch(
+  '/update-password',
+  authController.updatePassword,
+  authController.revokeToken
+);
 
 router
   .route('/me')

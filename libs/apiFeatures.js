@@ -9,7 +9,14 @@ class APIFeatures {
     //Copy query strings object
     const queryObject = { ...this.queryString };
     //Create array of fields unrelated to filtering
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    const excludedFields = [
+      'page',
+      'sort',
+      'limit',
+      'fields',
+      'loc',
+      'paginate',
+    ];
     //Delete unrelated fields from queryObject
     excludedFields.forEach((field) => delete queryObject[field]);
 
@@ -42,24 +49,37 @@ class APIFeatures {
   limit() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.replace(/,/g, ' ');
-      this.query = this.query.select(fields);
+      this.query = this.query.lean().select(fields);
     } else {
-      this.query = this.query.select('-__v');
+      this.query = this.query.lean().select('-__v');
+    }
+
+    return this;
+  }
+
+  loc() {
+    if (this.queryString.loc) {
+      const location = JSON.parse(this.queryString.loc);
+
+      const radius = location.radius / 3963.2;
+      const center = location.center.split(',');
+
+      if (center && radius) {
+        const area = { center, radius, spherical: true };
+        this.query = this.query.where('location').within().circle(area);
+      }
     }
 
     return this;
   }
 
   //Pagination
-  paginate() {
-    const page = Number(this.queryString.page) || 1;
-    const limit = Number(this.queryString.limit) || 100;
-    const skip = (page - 1) * limit;
+  // paginate() {
 
-    this.query = this.query.skip(skip).limit(limit);
+  //   this.query = this.query.skip(skip).limit(limit);
 
-    return this;
-  }
+  //   return this;
+  // }
 }
 
 module.exports = APIFeatures;
