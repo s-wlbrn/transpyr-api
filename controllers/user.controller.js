@@ -92,33 +92,48 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
 exports.getUserProfile = asyncCatch(async (req, res, next) => {
   const eventFields =
     'id name dateTimeStart dateTimeEnd photo ticketTiers totalBookings';
-  const allowedFields =
+  const defaultFields =
     'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events';
 
-  //ensure requested fields are subset of default ones, or use defult ones
-  req.query.fields =
-    filterQueryList(req.query.fields, allowedFields) || allowedFields;
-
-  const query = User.findById(req.params.id);
-  //populate events or favorites only if fields selected
-  //populate must come before select call for select to work
-  const fieldsArray = req.query.fields.split(',');
-  if (fieldsArray.includes('favorites')) {
-    query.populate('favorites', eventFields);
-  }
-  if (fieldsArray.includes('events')) {
-    query.populate('events', eventFields);
-  }
-
-  //perform select
-  const queryFeatures = new APIFeatures(query, req.query).limit();
-
-  //paginate favorites
+  //paginate options
   const limit = req.query.paginate ? Number(req.query.paginate.limit || 4) : 4;
   const skip = req.query.paginate
     ? limit * ((req.query.paginate.page || 0) - 1)
     : 0;
-  queryFeatures.query = queryFeatures.query.slice('favorites', [skip, limit]);
+
+  //ensure selected fields are subset of default, or use default
+  req.query.fields = req.query.fields
+    ? filterQueryList(req.query.fields, defaultFields) || defaultFields
+    : defaultFields;
+
+  //select fields
+  const queryFeatures = new APIFeatures(
+    User.findById(req.params.id),
+    req.query
+  ).limit();
+
+  //populate selected fields
+  const fieldsArray = req.query.fields.split(',');
+  if (fieldsArray.includes('favorites')) {
+    queryFeatures.query.populate({
+      path: 'favorites',
+      options: {
+        skip,
+        limit,
+        select: eventFields,
+      },
+    });
+  }
+  if (fieldsArray.includes('events')) {
+    queryFeatures.query.populate({
+      path: 'events',
+      options: {
+        skip,
+        limit,
+        select: eventFields,
+      },
+    });
+  }
 
   const doc = await queryFeatures.query;
 
@@ -127,6 +142,7 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
     doc.favorites = undefined;
   }
   doc.privateFavorites = undefined;
+
   res.status(200).json({
     status: 'success',
     data: {

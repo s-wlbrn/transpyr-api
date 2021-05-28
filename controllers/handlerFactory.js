@@ -80,7 +80,7 @@ exports.getAll = (Model) =>
     const queryFeatures = new APIFeatures(Model.find(), req.query)
       .filter()
       .sort()
-      .limit()
+      //.limit()
       .loc();
 
     let documents = [];
@@ -94,6 +94,8 @@ exports.getAll = (Model) =>
       const response = await Model.paginate(queryFeatures.query, {
         page,
         limit,
+        //handle projection in mongoose-paginate to avoid path collision
+        select: req.query.fields.replace(/,/g, ' '),
       });
       documents = response.docs;
 
@@ -105,6 +107,7 @@ exports.getAll = (Model) =>
         pages,
       };
     } else {
+      queryFeatures.limit();
       documents = await queryFeatures.query;
       data = {
         data: documents,

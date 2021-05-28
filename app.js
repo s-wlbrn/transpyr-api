@@ -22,8 +22,7 @@ const bookingRouter = require('./routes/booking.routes');
 //create app
 const app = express();
 
-//Global Middleware
-
+////Global Middleware
 //Serve static files
 app.use('/static', express.static('public'));
 
@@ -38,15 +37,15 @@ app.use(cors({ credentials: true, origin: true }));
 //   next();
 // });
 
-//// HTTP security headers
+// HTTP security headers
 app.use(helmet());
 
-//// Logging with 'morgan' for dev environment
+// Logging with 'morgan' for dev environment
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-//// Rate limiting
+// Rate limiting
 const limiter = rateLimit({
   max: 150,
   windowMS: 3600000,
@@ -54,16 +53,16 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-//// Express body parser
+// Express body parser
 app.use(express.json({ limit: '5mb' }));
 
-//// Express cookie parser
+// Express cookie parser
 app.use(cookieParser());
 
-//// Data sanitization
+// Data sanitization
 app.use(mongoSanitize());
 
-//// Prevent parameter pollution with 'hpp'
+// Prevent parameter pollution with 'hpp'
 app.use(hpp());
 
 //Mount routes

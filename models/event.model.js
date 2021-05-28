@@ -96,6 +96,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, 'An event must have a description.'],
     },
+    convertedDescription: String,
     summary: String,
     ticketTiers: [ticketTiersSchema],
     photo: {
@@ -181,7 +182,6 @@ const eventSchema = new mongoose.Schema(
     },
   },
   {
-    selectPopulatedPaths: false,
     toObject: { virtuals: true },
   }
 );
@@ -201,42 +201,28 @@ ticketTiersSchema.set('toJSON', {
 eventSchema.plugin(mongoosePaginate);
 
 //VIRTUAL
-// Convert Markdown to HTML and sanitize
-eventSchema.virtual('convertedDescription').get(function () {
-  const test = this.description.replace(/\\n/g, '\n');
-  return sanitizeHTML(marked(test));
-});
-
-// eventSchema.virtual('priceDisplay').get(function () {
-//   const prices = this.ticketTiers.map((tier) => tier.price);
-//   prices.sort(function (a, b) {
-//     return a - b;
-//   });
-//   let priceDisplay = prices[0] ? `$${prices[0]}` : 'Free';
-//   if (prices.pop() > prices[0]) priceDisplay += '+';
-
-//   return priceDisplay;
-// });
-
 eventSchema.virtual('ticketTiers.numBookings', {
   ref: 'Booking',
   localField: 'ticketTiers._id',
   foreignField: 'ticket',
   justOne: false,
-  count: true,
-});
-
-eventSchema.virtual('totalBookings', {
-  ref: 'Booking',
-  localField: '_id',
-  foreignField: 'event',
-  justOne: false,
-  count: true,
+  //mongoose bug- virtual populate count not working for subdocument
+  //count: true,
 });
 
 ticketTiersSchema.virtual('ticketSoldOut').get(function () {
-  const soldOut = !this.capacity ? false : !(this.numBookings < this.capacity);
+  const soldOut = !this.capacity
+    ? false
+    : !(this.numBookings.length < this.capacity);
   return soldOut;
+});
+
+eventSchema.virtual('totalBookings').get(function () {
+  const totalCount = this.ticketTiers.reduce(
+    (acc, tier) => tier.numBookings.length + acc,
+    0
+  );
+  return totalCount;
 });
 
 eventSchema.virtual('soldOut').get(function () {
@@ -248,10 +234,10 @@ eventSchema.virtual('soldOut').get(function () {
 
 //MIDDLEWARE
 
+//Populate ticket bookings and total bookings counts
 const autoPopulate = function (next) {
-  this.populate({ path: 'ticketTiers.numBookings' }).populate({
-    path: 'totalBookings',
-  });
+  this.populate('ticketTiers.numBookings', '_id');
+  //.populate('totalBookings');
   next();
 };
 eventSchema.pre(/^find/, autoPopulate);
@@ -262,15 +248,32 @@ eventSchema.pre('save', function (next) {
   next();
 });
 
-//Create online field
+//Create online field, set totalCapacity if neccessary
 eventSchema.pre('save', function (next) {
   let isOnline = false;
-  //Flag event 'online' if any ticket tier online
+  let ticketsConstrained = true;
+  let ticketCapacities = 0;
+  //Flag event 'online' if any ticket tier online. Flag if any tickets have unlimited capacity.
   this.ticketTiers.forEach((tier) => {
     if (tier.online === true) isOnline = true;
+    if (tier.capacity === 0) ticketsConstrained = false;
+    ticketCapacities += tier.capacity;
   });
 
+  if (ticketsConstrained) {
+    this.totalCapacity = ticketCapacities;
+  }
   this.online = isOnline;
+  next();
+});
+
+//Convert description to markdown
+eventSchema.pre('save', function (next) {
+  // if (!this.isModified('description')) return next();
+
+  //newlines not saved correctly without this
+  const fixedNewlines = this.description.replace(/\\n/g, '\n');
+  this.convertedDescription = sanitizeHTML(marked(fixedNewlines));
   next();
 });
 
