@@ -15,4 +15,18 @@ router.get(
   bookingController.createCheckoutBookings
 );
 
+router.use(authController.protectRoute);
+
+router.get('/me', bookingController.getBookings);
+
+router
+  .route('/refund-request/:id')
+  .get(bookingController.getRefundRequestById)
+  .patch(bookingController.resolveRefundRequest);
+
+router
+  .route('/refund-request/event/:id')
+  .get(bookingController.getEventRefundRequests)
+  .patch(bookingController.requestRefund);
+
 module.exports = router;

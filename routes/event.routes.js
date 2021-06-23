@@ -14,6 +14,8 @@ router.get('/:id', eventController.getEvent);
 //Protect following routes
 router.use(authController.protectRoute);
 
+router.get('/me/booked-events', eventController.getMyBookedEvents);
+
 //Create event
 router.post(
   '/',
@@ -33,7 +35,13 @@ router
     eventController.updateEvent
   )
   //Delete event
-  .delete(eventController.deleteEvent);
+  .delete(eventController.getAndAuthorizeEvent, eventController.cancelEvent);
+
+router.delete(
+  '/:id/ticket/:ticketId',
+  eventController.getAndAuthorizeEvent,
+  eventController.cancelTicket
+);
 
 router.put(
   '/:id/publish-event',

@@ -16,13 +16,15 @@ exports.createOne = (Model) =>
     });
   });
 
-exports.getOne = (Model) =>
+exports.getOne = (Model, populateOptions) =>
   asyncCatch(async (req, res, next) => {
     const queryFeatures = new APIFeatures(
       Model.findById(req.params.id),
       req.query
     ).limit();
-    //populate?
+    if (populateOptions) {
+      queryFeatures.query.populate(populateOptions);
+    }
     const doc = await queryFeatures.query;
 
     if (!doc) {
@@ -74,14 +76,17 @@ exports.deleteOne = (Model) =>
   });
 
 //All documents
-
-exports.getAll = (Model) =>
+exports.getAll = (Model, populateOptions) =>
   asyncCatch(async (req, res, next) => {
     const queryFeatures = new APIFeatures(Model.find(), req.query)
       .filter()
       .sort()
       //.limit()
       .loc();
+
+    if (populateOptions) {
+      queryFeatures.query.populate(populateOptions);
+    }
 
     let documents = [];
     let data = {};

@@ -1,0 +1,24 @@
+extends baseEmail 
+
+block content 
+  p Hi #{name},
+  p A ticketholder for one of your events has requested a cancelation and refund of one or more tickets.
+  p You can view the unresolved refund requests for the event here:
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=`${url}`, target='_blank') Refund requests
+  p In deciding on how to handle the refund request, please take into account the following: 
+  ul
+    li Attendees rely on you to adhere to your refund policy, which they agreed to when purchasing the ticket.
+    li The ticketholder may have supplied a reason for their cancelation. Exceptional circumstances do occur, and you can accept a refund request at your discretion.
+    li If the event's refund policy is found to violate Transpyr's Terms and Conditions, a refund may be issued to the ticketholder regardless.
+  
+  p Thanks for using out service, and we wish your event success! 
+  p - The Transpyr Team
+  

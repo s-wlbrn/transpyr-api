@@ -1,5 +1,34 @@
 const mongoose = require('mongoose');
 
+const refundRequestSchema = new mongoose.Schema({
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+  resolved: {
+    type: Boolean,
+    default: false,
+    validate: {
+      validator: function (v) {
+        return !v || !!this.status;
+      },
+      message: 'Refund request cannot be resolved without a status.',
+    },
+  },
+  status: {
+    type: String,
+    enum: ['accepted', 'rejected'],
+  },
+  reason: {
+    type: String,
+    max: [150, 'Cancelation reason cannot be more than 150 characters.'],
+  },
+  refundProcessed: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const bookingSchema = new mongoose.Schema(
   {
     name: {
@@ -41,6 +70,11 @@ const bookingSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    refundRequest: refundRequestSchema,
   },
   {
     toJSON: { virtuals: true },
@@ -55,6 +89,14 @@ const bookingSchema = new mongoose.Schema(
 //     select: 'name',
 //   });
 // });
+
+bookingSchema.virtual('ticketData').get(function () {
+  if (!this.event || !this.event.ticketTiers) return undefined;
+  const matchingTicket = this.event.ticketTiers.find(
+    (el) => String(el.id) === String(this.ticket)
+  );
+  return matchingTicket;
+});
 
 const Booking = mongoose.model('Booking', bookingSchema);
 

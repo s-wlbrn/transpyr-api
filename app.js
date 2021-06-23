@@ -51,7 +51,7 @@ const limiter = rateLimit({
   windowMS: 3600000,
   message: 'Too many requests. Try again in one hour.',
 });
-app.use('/api', limiter);
+//app.use('/api', limiter);
 
 // Express body parser
 app.use(express.json({ limit: '5mb' }));

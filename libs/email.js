@@ -3,10 +3,11 @@ const pug = require('pug');
 const { htmlToText } = require('html-to-text');
 
 module.exports = class Email {
-  constructor(user, url) {
+  constructor(user, url, event) {
     this.to = user.email;
     this.name = user.name;
     this.url = url;
+    this.event = event;
     this.from = `Transpyr <${process.env.EMAIL_FROM}>`;
   }
 
@@ -49,7 +50,7 @@ module.exports = class Email {
       text: htmlToText(html),
     };
 
-    //create transport, send email!!!!
+    //create transport, send email
     await this.newTransport().sendMail(mailOptions);
   }
 
@@ -61,6 +62,27 @@ module.exports = class Email {
     await this.send(
       'passwordReset',
       'Your password reset request (valid for 10 minutes)'
+    );
+  }
+
+  async sendCancelationRequestOrganizer() {
+    await this.send(
+      'cancelationRequestOrganizer',
+      "You've received a booking cancelation request for your event"
+    );
+  }
+
+  async sendCancelationRequestAcceptedOrganizer() {
+    await this.send(
+      'cancelationRequestAcceptedOrganizer',
+      'You have accepted a booking cancelation request.'
+    );
+  }
+
+  async sendCancelationRequestAcceptedAttendee() {
+    await this.send(
+      'cancelationRequestAcceptedAttendee',
+      'Your booking cancelation request has been accepted'
     );
   }
 };

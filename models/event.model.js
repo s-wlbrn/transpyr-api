@@ -36,6 +36,10 @@ const ticketTiersSchema = new mongoose.Schema(
         message: 'Limit per customer cannot exceed maximum number of tickets.',
       },
     },
+    canceled: {
+      type: Boolean,
+      default: false,
+    },
   },
   { toObject: { virtuals: true } }
 );
@@ -130,8 +134,8 @@ const eventSchema = new mongoose.Schema(
     location: {
       type: {
         type: String,
-        enum: ['Point'],
-        default: ['Point'],
+        enum: 'Point',
+        default: 'Point',
         required: true,
       },
       coordinates: {
@@ -170,6 +174,10 @@ const eventSchema = new mongoose.Schema(
     },
     slug: String,
     online: Boolean,
+    canceled: {
+      type: Boolean,
+      default: false,
+    },
     published: {
       type: Boolean,
       default: false,
@@ -211,6 +219,7 @@ eventSchema.virtual('ticketTiers.numBookings', {
 });
 
 ticketTiersSchema.virtual('ticketSoldOut').get(function () {
+  if (!this.numBookings) return undefined;
   const soldOut = !this.capacity
     ? false
     : !(this.numBookings.length < this.capacity);
@@ -218,6 +227,7 @@ ticketTiersSchema.virtual('ticketSoldOut').get(function () {
 });
 
 eventSchema.virtual('totalBookings').get(function () {
+  if (!this.ticketTiers || !this.ticketTiers[0].numBookings) return undefined;
   const totalCount = this.ticketTiers.reduce(
     (acc, tier) => tier.numBookings.length + acc,
     0
@@ -226,6 +236,7 @@ eventSchema.virtual('totalBookings').get(function () {
 });
 
 eventSchema.virtual('soldOut').get(function () {
+  if (this.totalBookings === undefined) return undefined;
   const soldOut = !this.totalCapacity
     ? false
     : !(this.totalBookings < this.totalCapacity);
@@ -235,12 +246,18 @@ eventSchema.virtual('soldOut').get(function () {
 //MIDDLEWARE
 
 //Populate ticket bookings and total bookings counts
-const autoPopulate = function (next) {
-  this.populate('ticketTiers.numBookings', '_id');
-  //.populate('totalBookings');
-  next();
-};
-eventSchema.pre(/^find/, autoPopulate);
+// const autoPopulate = function (next) {
+//   this.populate({
+//     path: 'ticketTiers.numBookings',
+//     select: '_id',
+//     match: {
+//       active: true,
+//     },
+//   });
+//   //.populate('totalBookings');
+//   next();
+// };
+// eventSchema.pre(/^find/, autoPopulate);
 
 //Create slug
 eventSchema.pre('save', function (next) {
