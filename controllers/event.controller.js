@@ -1,38 +1,27 @@
-const multer = require('multer');
 const sharp = require('sharp');
 const Event = require('../models/event.model');
 const Booking = require('../models/booking.model');
-//const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const filterFields = require('../libs/filterFields');
 const APIFeatures = require('../libs/apiFeatures');
+const { cancelAllBookings } = require('./booking.controller');
+const multerUpload = require('../libs/multerUpload');
 
-//Multer config
-const multerStorage = multer.memoryStorage();
-//Validate image type
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Not an image. Please upload a valid image type', 400));
+//passed to getOne handler to handle unpublished events
+const authorizeUnpublishedEvent = (req, event) => {
+  if (event.published) return true;
+  if (
+    !req.user ||
+    (req.user.role !== 'admin' && req.user.id !== event.organizer.id)
+  ) {
+    return false;
   }
+  return true;
 };
-//for module, call upload, use fs to move file from temp dir to correct one
-//for now keep all the multer code in the controller
-const upload = multer({
-  storage: multerStorage,
-  fileFilter: multerFilter,
-});
 
-const cancelAllBookings = asyncCatch(async (matchKey, matchValue) => {
-  const ticketBookings = await Booking.find({ [matchKey]: matchValue });
-  await ticketBookings.forEach(async (booking) => {
-    booking.active = false;
-    await booking.save();
-  });
-});
+exports.uploadEventPhoto = multerUpload.single('photo');
 
 exports.convertEventPhotoJpeg = (req, res, next) => {
   if (!req.file) return next();
@@ -55,14 +44,25 @@ exports.getAndAuthorizeEvent = asyncCatch(async (req, res, next) => {
   if (!doc) {
     return next(new AppError('Event not found.', 404));
   }
-  if (String(doc.organizer) !== String(req.user._id)) {
+  if (
+    req.user.role !== 'admin' &&
+    String(doc.organizer) !== String(req.user._id)
+  ) {
     return next(new AppError('Only the organizer may edit this event.', 403));
   }
   req.event = doc;
   next();
 });
 
-exports.findEventAndUpdate = asyncCatch(async (req, res, next) => {
+exports.updateAndSaveEvent = asyncCatch(async (req, res, next) => {
+  //handle updating past event
+  if (new Date(req.event.dateTimeStart) < Date.now()) {
+    return next(new AppError('Past events cannot be updated.', 400));
+  }
+  if (req.event.canceled) {
+    return next(new AppError('Canceled events cannot be updated.', 400));
+  }
+
   const filteredBody = filterFields(
     req.body,
     'name',
@@ -161,7 +161,35 @@ exports.getMyBookedEvents = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.uploadEventPhoto = upload.single('photo');
+//search events with text string, sorting by relevance
+exports.searchEvents = asyncCatch(async (req, res, next) => {
+  //handle no search string?
+
+  const searchResults = await Event.find(
+    { $text: { $search: req.query.searchString } },
+    { score: { $meta: 'textScore' } }
+  ).sort({ score: { $meta: 'textScore' } });
+
+  res.status(200).json({
+    status: 'success',
+    length: searchResults.length,
+    data: searchResults,
+  });
+});
+
+//queries for published events only
+exports.queryPublishedOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    req.query.published = true;
+    return next();
+  }
+  next();
+};
+
+exports.queryOwnEvents = (req, res, next) => {
+  req.query.organizer = req.user.id;
+  next();
+};
 
 exports.getAllEvents = factory.getAll(Event, {
   path: 'ticketTiers.numBookings',
@@ -170,13 +198,27 @@ exports.getAllEvents = factory.getAll(Event, {
     active: true,
   },
 });
-exports.getEvent = factory.getOne(Event, {
-  path: 'ticketTiers.numBookings',
-  select: '_id',
-  match: {
-    active: true,
-  },
-});
+exports.getEvent = factory.getOne(
+  Event,
+  [
+    {
+      path: 'ticketTiers.numBookings',
+      select: '_id',
+      match: {
+        active: true,
+      },
+    },
+    { path: 'organizer', select: 'id name photo tagline' },
+  ],
+  authorizeUnpublishedEvent
+);
+// exports.getEventAdmin = factory.getOne(Event, {
+//   path: 'ticketTiers.numBookings',
+//   select: '_id',
+//   match: {
+//     active: true,
+//   },
+// });
 exports.createEvent = factory.createOne(Event);
 exports.updateEvent = factory.updateOne(Event);
 exports.deleteEvent = factory.deleteOne(Event);

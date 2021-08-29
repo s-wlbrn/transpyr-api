@@ -6,15 +6,25 @@ const authController = require('../controllers/auth.controller');
 const router = express.Router();
 
 //Get all events
-router.get('/', eventController.getAllEvents);
+router.get(
+  '/',
+  authController.getAttachUser,
+  eventController.queryPublishedOnly,
+  eventController.getAllEvents
+);
 
 //Get one event by id
-router.get('/:id', eventController.getEvent);
+router.get('/:id', authController.getAttachUser, eventController.getEvent);
 
 //Protect following routes
 router.use(authController.protectRoute);
 
-router.get('/me/booked-events', eventController.getMyBookedEvents);
+router.get('/me/booked', eventController.getMyBookedEvents);
+router.get(
+  '/me/managed/',
+  eventController.queryOwnEvents,
+  eventController.getAllEvents
+);
 
 //Create event
 router.post(
@@ -26,7 +36,7 @@ router.post(
 router
   .route('/:id')
   //Update event
-  .put(eventController.getAndAuthorizeEvent, eventController.findEventAndUpdate)
+  .put(eventController.getAndAuthorizeEvent, eventController.updateAndSaveEvent)
   //Upload event photo
   .patch(
     eventController.getAndAuthorizeEvent,

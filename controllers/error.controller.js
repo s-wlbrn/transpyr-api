@@ -63,9 +63,6 @@ module.exports = (err, req, res, next) => {
   //default to 'error' if no status
   err.status = err.status || 'error';
 
-  // let error = { ...err };
-  // //workaround for spread operator not including message property
-  // error.message = err.message;
   let error = err;
 
   //Handle JWT errors

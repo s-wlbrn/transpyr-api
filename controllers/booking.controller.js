@@ -8,6 +8,14 @@ const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const APIFeatures = require('../libs/apiFeatures');
 const Email = require('../libs/email');
+const factory = require('./handlerFactory');
+
+const authorizeGetBooking = (req, booking) => {
+  if (booking.user !== req.user.id && req.user.role !== 'admin') {
+    return false;
+  }
+  return true;
+};
 
 const getRefundRequests = async (query) => {
   const requestBookings = await Booking.aggregate([
@@ -36,10 +44,11 @@ const getRefundRequests = async (query) => {
     },
     {
       $group: {
-        _id: '$refundRequest._id',
+        _id: '$refundRequest.requestId',
         name: { $first: '$name' },
         email: { $first: '$email' },
-        createdAt: { $first: '$createdAt' },
+        createdAt: { $first: '$refundRequest.createdAt' },
+        reason: { $first: '$refundRequest.reason' },
         event: {
           $first: {
             id: '$event._id',
@@ -55,19 +64,10 @@ const getRefundRequests = async (query) => {
   return requestBookings;
 };
 
-exports.getBooking = asyncCatch(async (req, res, next) => {
-  const doc = await Booking.findOneById(req.params.id).populate('event');
-
-  res.status(200).json({
-    status: 'success',
-    data: doc,
-  });
-});
-
 exports.resolveRefundRequest = asyncCatch(async (req, res, next) => {
   // get booking, populate event
   const bookings = await Booking.find({
-    'refundRequest._id': req.params.id,
+    'refundRequest.requestId': req.params.id,
     'refundRequest.resolved': false,
   }).populate({ path: 'event', select: 'organizer name' });
   //Validate
@@ -78,7 +78,10 @@ exports.resolveRefundRequest = asyncCatch(async (req, res, next) => {
         404
       )
     );
-  if (req.user.id !== String(bookings[0].event.organizer))
+  if (
+    req.user.id !== String(bookings[0].event.organizer) &&
+    req.user.role !== 'admin'
+  )
     return next(
       new AppError(
         'You are not the organizer of the event this booking belongs to.',
@@ -114,11 +117,12 @@ exports.resolveRefundRequest = asyncCatch(async (req, res, next) => {
   //send emails
   if (req.query.status === 'accepted') {
     await Promise.all([
-      emailOrganizer.sendCancelationRequestAcceptedOrganizer,
-      emailAttendee.sendCancelationRequestAcceptedAttendee,
+      emailOrganizer.sendCancelationRequestAcceptedOrganizer(),
+      emailAttendee.sendCancelationRequestAcceptedAttendee(),
     ]);
   } else {
     //email rejected
+    await emailAttendee.sendCancelationRequestRejectedAttendee();
   }
 
   res.status(200).json({
@@ -130,14 +134,29 @@ exports.resolveRefundRequest = asyncCatch(async (req, res, next) => {
 
 exports.requestRefund = asyncCatch(async (req, res, next) => {
   if (!req.body.selectedIdsArray)
-    return next(
-      new AppError('Please specify an array of booking IDs to cancel.', 400)
-    );
+    return next(new AppError('Please specify bookings to cancel.', 400));
 
-  await Booking.updateMany(
-    { user: req.user.id, _id: { $in: req.body.selectedIdsArray } },
-    { refundRequest: { cancelationReason: req.body.cancelationReason } }
-  );
+  const bookings = await Booking.find({
+    user: req.user.id,
+    _id: { $in: req.body.selectedIdsArray },
+  });
+  //create uuid for refund request
+  const requestId = mongoose.Types.ObjectId();
+  //map bookings with refundRequest added, return array of promises
+  const updatedBookingsPromises = bookings.map((booking) => {
+    if (booking.price) {
+      booking.refundRequest = {
+        requestId,
+        reason: req.body.cancelationReason || undefined,
+        resolved: false,
+      };
+    } else {
+      booking.active = false;
+    }
+    return booking.save();
+  });
+  //update bookings
+  const updatedBookings = await Promise.all(updatedBookingsPromises);
 
   //get event and send email to organizer
   const event = await Event.findById(req.params.id)
@@ -145,7 +164,7 @@ exports.requestRefund = asyncCatch(async (req, res, next) => {
     .populate('organizer');
   await new Email(
     event.organizer,
-    `${process.env.FRONTEND_HOST}/events/id/${event.id}/refund-requests`
+    `${process.env.FRONTEND_HOST}/bookings/refund-requests/${requestId}`
   ).sendCancelationRequestOrganizer();
 
   res.status(204).json({
@@ -154,31 +173,17 @@ exports.requestRefund = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.getBookings = asyncCatch(async (req, res, next) => {
-  const queryFeatures = new APIFeatures(Booking.find(), req.query)
-    .filter()
-    .sort();
-  queryFeatures.query
-    .find({ user: req.user.id, active: true })
-    .populate({ path: 'event', select: 'name dateTimeStart ticketTiers' });
-  const bookings = await queryFeatures.query;
-
-  res.status(200).json({
-    status: 'success',
-    length: bookings.length,
-    data: bookings,
-  });
-});
-
 exports.getRefundRequestById = asyncCatch(async (req, res, next) => {
   const bookings = await getRefundRequests({
-    'refundRequest._id': mongoose.Types.ObjectId(req.params.id),
+    'refundRequest.requestId': mongoose.Types.ObjectId(req.params.id),
     'refundRequest.resolved': false,
   });
 
-  if (!bookings.length)
-    return next(new AppError('No refund requests for this event.', 404));
-  if (String(bookings[0].event.organizer) !== req.user.id)
+  if (
+    bookings.length &&
+    String(bookings[0].event.organizer) !== req.user.id &&
+    req.user.role !== 'admin'
+  )
     return next(new AppError('You are not the organizer of this event.', 403));
 
   res.status(200).json({
@@ -194,9 +199,11 @@ exports.getEventRefundRequests = asyncCatch(async (req, res, next) => {
     'refundRequest.resolved': false,
   });
 
-  if (!bookings.length)
-    return next(new AppError('No refund requests for this event.', 404));
-  if (String(bookings[0].event.organizer) !== req.user.id)
+  if (
+    bookings.length &&
+    String(bookings[0].event.organizer) !== req.user.id &&
+    req.user.role !== 'admin'
+  )
     return next(new AppError('You are not the organizer of this event.', 403));
 
   res.status(200).json({
@@ -208,7 +215,6 @@ exports.getEventRefundRequests = asyncCatch(async (req, res, next) => {
 
 exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   const { tickets } = req.body;
-
   //get event to book from params
   const event = await Event.findById(req.params.eventId).populate({
     path: 'ticketTiers.numBookings',
@@ -217,6 +223,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
       active: true,
     },
   });
+
   //handle no event
   if (!event)
     return next(new AppError('The specified event does not exist.', 404));
@@ -224,9 +231,81 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   if (event.canceled)
     return next(new AppError('The specified event is canceled.', 400));
   //handle event sold out
-  //or numBookings + quantity is greater than capacity!
   if (event.soldOut)
     return next(new AppError('The specified event is sold out.', 400));
+
+  //calculate total number of tickets requested
+  const ticketKeys = Object.keys(tickets);
+  const selectedTicketsCount = ticketKeys.reduce(
+    (acc, cur) => acc + tickets[cur],
+    0
+  );
+
+  //handle requested tickets going over capacity
+  if (
+    event.totalCapacity > 0 &&
+    selectedTicketsCount + event.totalBookings > event.totalCapacity
+  )
+    return next(
+      new AppError(
+        'There are not enough remaining tickets to complete the order.',
+        400
+      )
+    );
+
+  //map info for all selected tickets
+  const selectedTicketTiersMap = ticketKeys.reduce((acc, ticketId) => {
+    const ticket = event.ticketTiers.find((el) => el.id === ticketId);
+    return { ...acc, [ticketId]: { ...ticket._doc } };
+  }, {});
+
+  //validate each ticket selection
+  ticketKeys.forEach((ticketId) => {
+    const selectedTicket = selectedTicketTiersMap[ticketId];
+    //handle ticket canceled
+    if (selectedTicket.canceled) {
+      return next(
+        new AppError(
+          `One of the selected tickets has been canceled: "${selectedTicket.tierName}"`,
+          400
+        )
+      );
+    }
+    //handle ticket sold out
+    if (selectedTicket.ticketSoldOut) {
+      return next(
+        new AppError(
+          `One of the selected tickets is sold out: "${selectedTicket.tierName}"`,
+          400
+        )
+      );
+    }
+    //handle selected tickets over limitPerCustomer
+    if (
+      selectedTicket.limitPerCustomer > 0 &&
+      tickets[ticketId] > selectedTicket.limitPerCustomer
+    ) {
+      return next(
+        new AppError(
+          `Ticket "${selectedTicket.tierName}" has a limit of ${selectedTicket.limitPerCustomer} per customer.`,
+          400
+        )
+      );
+    }
+    //handle requested tickets going over ticket capacity
+    if (
+      selectedTicket.capacity > 0 &&
+      tickets[ticketId] + selectedTicket.numBookings.length >
+        selectedTicket.capacity
+    ) {
+      return next(
+        new AppError(
+          `There are not enough remaining tickets for "${selectedTicket.tierName}" to complete the order.`,
+          400
+        )
+      );
+    }
+  });
 
   //if user sent, fetch user
   let user = '';
@@ -238,62 +317,40 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     user = userDoc;
   }
 
-  //Make email field
+  //get email
   const customerEmail = user.email || req.body.email;
   //handle no booking email
   if (!customerEmail)
-    return next(
-      new AppError('You must specify an email for the booking.', 400)
-    );
+    return next(new AppError('Please specify an email for the booking.', 400));
 
-  //Create map of ticket tiers for easy lookup
-  //ticketTier map into an instance method?
-  const ticketKeys = Object.keys(tickets);
-  const ticketTiersMap = ticketKeys.reduce((acc, ticketId) => {
-    const ticket = event.ticketTiers.find((el) => el.id === ticketId);
-    return { ...acc, [ticketId]: { ...ticket._doc } };
-  }, {});
-
-  //handle canceled or sold out ticket
-  for (const ticketId of ticketKeys) {
-    if (ticketTiersMap[ticketId].canceled) {
-      return next(
-        new AppError('One of the selected tickets has been canceled.', 400)
-      );
-      //or numBookings + quantity is greater than capacity!
-    } else if (ticketTiersMap[ticketId].ticketSoldOut) {
-      return next(
-        new AppError('One of the selected tickets is sold out.', 400)
-      );
-    }
-  }
-
+  //create Stripe line_items
   const lineItems = ticketKeys.map((ticketId) => {
+    const selectedTicket = selectedTicketTiersMap[ticketId];
     return {
       price_data: {
         currency: 'usd',
         unit_amount:
-          event.feePolicy === 'absorbFee'
-            ? Math.floor(ticketTiersMap[ticketId].price * 1.03 * 100)
-            : ticketTiersMap[ticketId].price * 100,
+          event.feePolicy === 'passFee'
+            ? Math.floor(selectedTicket.price * 1.03 * 100)
+            : selectedTicket.price * 100,
         product_data: {
-          name: `${event.name}: ${ticketTiersMap[ticketId].tierName}`,
-          description: ticketTiersMap[ticketId].tierDescription,
+          name: `${event.name}: ${selectedTicket.tierName}`,
+          description: selectedTicket.tierDescription,
         },
       },
       quantity: tickets[ticketId],
     };
   });
 
-  //Create tickets array for booking
-  //future- create bookings with paid:false and update after successful checkout
+  //Create tickets array for creating database bookings
+  //TODO create bookings with paid:false and update after successful checkout
   const ticketsArray = ticketKeys.flatMap((ticketId) => {
     const individualBookings = [];
     // create booking objects with ticket id and price according to quantity
     for (let i = 0; i < tickets[ticketId]; i += 1) {
       individualBookings.push({
         ticket: ticketId,
-        price: ticketTiersMap[ticketId].price,
+        price: selectedTicketTiersMap[ticketId].price,
       });
     }
     return individualBookings;
@@ -358,6 +415,16 @@ exports.createCheckoutBookings = async (req, res, next) => {
     })
   );
 
+  await new Email(
+    { name, email },
+    `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
+  );
+  if (user) {
+    await Email.sendBookingSuccess();
+  } else {
+    await Email.sendBookingSuccessGuest();
+  }
+
   res.status(201).json({
     status: 'success',
     data: {
@@ -389,3 +456,33 @@ exports.createBookings = asyncCatch(async (req, res, next) => {
     },
   });
 });
+
+exports.cancelAllBookings = asyncCatch(async (matchKey, matchValue) => {
+  const ticketBookings = await Booking.find({ [matchKey]: matchValue });
+  await ticketBookings.forEach(async (booking) => {
+    booking.active = false;
+    await booking.save();
+  });
+});
+
+exports.getBookings = asyncCatch(async (req, res, next) => {
+  const queryFeatures = new APIFeatures(Booking.find(), req.query)
+    .filter()
+    .sort();
+
+  if (req.user.role !== 'admin') {
+    queryFeatures.query.find({ user: req.user.id, active: true }).populate({
+      path: 'event',
+      select: 'name dateTimeStart ticketTiers pastEvent',
+    });
+  }
+  const bookings = await queryFeatures.query;
+
+  res.status(200).json({
+    status: 'success',
+    length: bookings.length,
+    data: bookings,
+  });
+});
+
+exports.getBooking = factory.getOne(Booking, 'event');

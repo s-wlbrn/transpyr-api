@@ -38,6 +38,7 @@ router
   .delete(userController.deactivateMe);
 
 //Admin-only
+router.use(authController.authorizeRole('admin'));
 
 router
   .route('/')

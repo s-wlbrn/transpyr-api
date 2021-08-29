@@ -3,7 +3,7 @@ extends baseEmail
 block content 
   p Hi #{name},
   p A ticketholder for one of your events has requested a cancelation and refund of one or more tickets.
-  p You can view the unresolved refund requests for the event here:
+  p You can view the refund request here:
   table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
     tbody
       tr
@@ -12,7 +12,7 @@ block content
             tbody
               tr
                 td
-                  a(href=`${url}`, target='_blank') Refund requests
+                  a(href=`${url}`, target='_blank') Refund request
   p In deciding on how to handle the refund request, please take into account the following: 
   ul
     li Attendees rely on you to adhere to your refund policy, which they agreed to when purchasing the ticket.

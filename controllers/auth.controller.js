@@ -7,10 +7,51 @@ const Email = require('../libs/email');
 const User = require('../models/user.model');
 const RefreshToken = require('../models/refresh-token.model');
 
+const extractToken = (headers) => {
+  let token;
+  if (headers.authorization && headers.authorization.startsWith('Bearer')) {
+    token = headers.authorization.split(' ')[1];
+  }
+
+  return token;
+};
+
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
+};
+
+const decodeToken = async (token) => {
+  //verify token
+  const decodedToken = await promisify(jwt.verify)(
+    token,
+    process.env.JWT_SECRET
+  );
+
+  //try to get user
+  const decodedUser = await User.findById(decodedToken.id);
+
+  //check if user is active
+  if (!decodedUser) {
+    return Promise.reject(
+      new AppError(
+        'The account associated with this session has been deactivated',
+        401
+      )
+    );
+  }
+  //check if password was changed after JWT issued
+  if (decodedUser.changedPasswordAfter(decodedToken.iat)) {
+    return Promise.reject(
+      new AppError(
+        'The password of the account associated with this session was changed. Please log in again.',
+        401
+      )
+    );
+  }
+
+  return decodedUser;
 };
 
 const generateRefreshToken = (userId) => {
@@ -84,7 +125,7 @@ exports.signin = asyncCatch(async (req, res, next) => {
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || !(await user.isCorrectPassword(password, user.password))) {
-    next(
+    return next(
       new AppError(
         'Either the specified password is incorrect, or a user with this email address does not exist. Please try again.',
         400
@@ -147,7 +188,7 @@ exports.resetPassword = asyncCatch(async (req, res, next) => {
 
   //if token has not expired, user exists, set new password
   if (!user) {
-    return next(new AppError('Token is invalid or has expired', 400));
+    return next(new AppError('Token is invalid or has expired.', 400));
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
@@ -174,7 +215,7 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 
   //check password in body
   if (!(await user.isCorrectPassword(password, user.password))) {
-    return next(new AppError('The password entered is incorrect.'), 400);
+    return next(new AppError('The password entered is incorrect.', 400));
   }
 
   //update password
@@ -219,53 +260,51 @@ exports.revokeToken = asyncCatch(async (req, res, next) => {
   });
 });
 
+exports.getAttachUser = asyncCatch(async (req, res, next) => {
+  const token = extractToken(req.headers);
+  if (!token) {
+    return next();
+  }
+  //catch and ignore error from decode so invalid token defaults to no user
+  let decodedUser;
+  try {
+    decodedUser = await decodeToken(token);
+  } catch (err) {
+    return next();
+  }
+  //attach user info to req
+  req.user = decodedUser;
+  next();
+});
+
 exports.protectRoute = asyncCatch(async (req, res, next) => {
   //check for JWT
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
+  const token = extractToken(req.headers);
 
   if (!token) {
     return next(new AppError('You are not logged in.', 401));
   }
 
-  //verify token
-  const decodedToken = await promisify(jwt.verify)(
-    token,
-    process.env.JWT_SECRET
-  );
-
-  //try to get user
-  const decodedUser = await User.findById(decodedToken.id);
-
-  //check if user is active
-  if (!decodedUser) {
-    return next(
-      new AppError(
-        'The account associated with this session has been deactivated',
-        401
-      )
-    );
-  }
-
-  //check if password was changed after JWT issued
-  if (decodedUser.changedPasswordAfter(decodedToken.iat)) {
-    return next(
-      new AppError(
-        'The password of the account associated with this session was changed. Please log in again.',
-        401
-      )
-    );
-  }
+  const decodedUser = await decodeToken(token);
 
   //attach user info to req
   req.user = decodedUser;
   next();
 });
+
+exports.authorizeRole = (roles) => {
+  if (typeof roles === 'string') {
+    roles = [roles];
+  }
+
+  return (req, res, next) => {
+    const { user } = req;
+    if (!user || !roles.includes(user.role)) {
+      return next(new AppError('Unauthorized.', 403));
+    }
+    next();
+  };
+};
 
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {

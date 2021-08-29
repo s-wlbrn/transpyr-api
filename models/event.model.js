@@ -9,14 +9,18 @@ const ticketTiersSchema = new mongoose.Schema(
     tierName: {
       type: String,
       required: true,
+      max: [50, 'Ticket name cannot exceed 50 characters.'],
+      //unique
     },
     tierDescription: {
       type: String,
       required: true,
+      max: [150, 'Ticket description cannot exceed 150 characters.'],
     },
     price: {
       type: Number,
       required: true,
+      min: [0, 'Ticket price must be a positive number.'],
     },
     online: {
       type: Boolean,
@@ -25,15 +29,17 @@ const ticketTiersSchema = new mongoose.Schema(
     capacity: {
       type: Number,
       default: 0,
+      min: [0, 'Ticket capacity must be a positive number.'],
     },
     limitPerCustomer: {
       type: Number,
       default: 0,
+      min: [1, 'Per-customer limit must 1 or greater.'],
       validate: {
         validator: function (v) {
           return this.capacity === 0 ? true : v < this.capacity;
         },
-        message: 'Limit per customer cannot exceed maximum number of tickets.',
+        message: 'Limit per customer cannot exceed ticket capacity.',
       },
     },
     canceled: {
@@ -49,7 +55,8 @@ const eventSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, 'An event must have a name.'],
-      minlength: [8, 'An event name should have at least 8 characters.'],
+      minlength: [8, 'Event name should be at least 8 characters.'],
+      maxlength: [75, 'Event name cannot exceed 75 characters.'],
     },
     type: {
       type: String,
@@ -102,7 +109,31 @@ const eventSchema = new mongoose.Schema(
     },
     convertedDescription: String,
     summary: String,
-    ticketTiers: [ticketTiersSchema],
+    ticketTiers: {
+      type: [ticketTiersSchema],
+      required: [true, 'An event must have ticket types.'],
+      validate: [
+        {
+          validator: function (v) {
+            return v.length >= 1;
+          },
+          message: 'At least one ticket type is required.',
+        },
+        {
+          validator: function (v) {
+            const ticketMap = {};
+            const duplicates = [];
+            v.forEach((ticket) => {
+              const formattedName = ticket.tierName.trim().toLowerCase();
+              if (ticketMap[formattedName]) duplicates.push(formattedName);
+              ticketMap[formattedName] = true;
+            });
+            return duplicates.length === 0;
+          },
+          message: 'At least one ticket type is required.',
+        },
+      ],
+    },
     photo: {
       type: String,
       default: 'default.jpg',
@@ -164,7 +195,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       enum: {
         values: ['absorbFee', 'passFee'],
-        message: "Fee policy must be either 'absorbFee' or 'passFee'",
+        message: "Fee policy must be either 'absorbFee' or 'passFee'.",
       },
     },
     refundPolicy: String,
@@ -192,6 +223,12 @@ const eventSchema = new mongoose.Schema(
   {
     toObject: { virtuals: true },
   }
+);
+
+//Indices
+eventSchema.index(
+  { name: 'text', description: 'text' },
+  { name: 'event index', weights: { name: 2, description: 1 } }
 );
 
 //Settings
@@ -265,21 +302,13 @@ eventSchema.pre('save', function (next) {
   next();
 });
 
-//Create online field, set totalCapacity if neccessary
+//Create online field
 eventSchema.pre('save', function (next) {
   let isOnline = false;
-  let ticketsConstrained = true;
-  let ticketCapacities = 0;
-  //Flag event 'online' if any ticket tier online. Flag if any tickets have unlimited capacity.
+  //Flag event 'online' if any ticket tier online.
   this.ticketTiers.forEach((tier) => {
     if (tier.online === true) isOnline = true;
-    if (tier.capacity === 0) ticketsConstrained = false;
-    ticketCapacities += tier.capacity;
   });
-
-  if (ticketsConstrained) {
-    this.totalCapacity = ticketCapacities;
-  }
   this.online = isOnline;
   next();
 });

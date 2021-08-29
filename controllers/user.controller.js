@@ -1,39 +1,19 @@
-const multer = require('multer');
 const sharp = require('sharp');
 const User = require('../models/user.model');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const filterFields = require('../libs/filterFields');
-//const uploadPhoto = require('../libs/uploadPhoto');
 const factory = require('./handlerFactory');
 const filterQueryList = require('../libs/filterQueryList');
 const APIFeatures = require('../libs/apiFeatures');
+const multerUpload = require('../libs/multerUpload');
 
-const multerStorage = multer.memoryStorage();
-
-//Validate image type
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Not an image. Please upload a valid image type', 400));
-  }
-};
-
-//for module, call upload, use fs to move file from temp dir to correct one
-//for now keep all the multer code in the controller
-
-const upload = multer({
-  storage: multerStorage,
-  fileFilter: multerFilter,
-});
-
-exports.uploadUserPhoto = upload.single('photo');
+exports.uploadUserPhoto = multerUpload.single('photo');
 
 exports.resizeUserPhoto = (req, res, next) => {
   if (!req.file) return next();
 
-  req.file.filename = `${req.user.id}.jpeg`;
+  req.file.filename = `${req.user.id}-${Date.now()}.jpeg`;
 
   sharp(req.file.buffer)
     .resize(500, 500)

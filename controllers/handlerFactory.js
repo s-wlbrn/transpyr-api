@@ -16,19 +16,37 @@ exports.createOne = (Model) =>
     });
   });
 
-exports.getOne = (Model, populateOptions) =>
+exports.getOne = (Model, populateOptions, authorize) =>
   asyncCatch(async (req, res, next) => {
     const queryFeatures = new APIFeatures(
       Model.findById(req.params.id),
       req.query
     ).limit();
+
     if (populateOptions) {
       queryFeatures.query.populate(populateOptions);
     }
     const doc = await queryFeatures.query;
 
+    //handle no document
     if (!doc) {
       return next(new AppError('Resource not found.', 404));
+    }
+
+    //call authorization function if specified
+    if (typeof authorize === 'function') {
+      if (!authorize(req, doc)) {
+        const resourceName = Model.collection.name;
+        return next(
+          new AppError(
+            `You are not authorized to view this ${resourceName.slice(
+              0,
+              resourceName.length - 1
+            )}.`,
+            403
+          )
+        );
+      }
     }
 
     res.status(200).json({
@@ -81,8 +99,8 @@ exports.getAll = (Model, populateOptions) =>
     const queryFeatures = new APIFeatures(Model.find(), req.query)
       .filter()
       .sort()
-      //.limit()
-      .loc();
+      .loc()
+      .search();
 
     if (populateOptions) {
       queryFeatures.query.populate(populateOptions);
@@ -100,7 +118,9 @@ exports.getAll = (Model, populateOptions) =>
         page,
         limit,
         //handle projection in mongoose-paginate to avoid path collision
-        select: req.query.fields.replace(/,/g, ' '),
+        select: req.query.fields
+          ? req.query.fields.replace(/,/g, ' ')
+          : undefined,
       });
       documents = response.docs;
 

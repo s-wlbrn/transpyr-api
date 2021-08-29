@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const refundRequestSchema = new mongoose.Schema({
+  requestId: mongoose.Types.ObjectId,
   createdAt: {
     type: Date,
     default: Date.now(),

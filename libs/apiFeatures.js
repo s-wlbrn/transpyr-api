@@ -16,6 +16,7 @@ class APIFeatures {
       'fields',
       'loc',
       'paginate',
+      'search',
     ];
     //Delete unrelated fields from queryObject
     excludedFields.forEach((field) => delete queryObject[field]);
@@ -28,6 +29,19 @@ class APIFeatures {
     //Convert back to JSON and add to query
     this.query = this.query.find(JSON.parse(queryStr));
 
+    return this;
+  }
+
+  //Performs search on collection's searchable text index
+  search() {
+    if (this.queryString.search) {
+      this.query
+        .find(
+          { $text: { $search: this.queryString.search } },
+          { score: { $meta: 'textScore' } }
+        )
+        .sort({ score: { $meta: 'textScore' } });
+    }
     return this;
   }
 
@@ -49,7 +63,6 @@ class APIFeatures {
   limit() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.replace(/,/g, ' ');
-      console.log(fields);
       this.query = this.query.select(fields);
     } else {
       this.query = this.query.select('-__v');
@@ -73,14 +86,6 @@ class APIFeatures {
 
     return this;
   }
-
-  //Pagination
-  // paginate() {
-
-  //   this.query = this.query.skip(skip).limit(limit);
-
-  //   return this;
-  // }
 }
 
 module.exports = APIFeatures;

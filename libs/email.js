@@ -38,7 +38,7 @@ module.exports = class Email {
     // render html based on pug template
     const html = pug.renderFile(
       `${__dirname}/../templates/emails/${template}.pug`,
-      { name: this.name, url: this.url, subject }
+      { name: this.name, url: this.url, event: this.event, subject }
     );
 
     //define email options
@@ -65,6 +65,14 @@ module.exports = class Email {
     );
   }
 
+  async sendBookingSuccess() {
+    await this.send('bookingSuccess', 'Booking confirmation');
+  }
+
+  async sendBookingSuccessGuest() {
+    await this.send('bookingSuccessGuest', 'Booking confirmation');
+  }
+
   async sendCancelationRequestOrganizer() {
     await this.send(
       'cancelationRequestOrganizer',
@@ -83,6 +91,13 @@ module.exports = class Email {
     await this.send(
       'cancelationRequestAcceptedAttendee',
       'Your booking cancelation request has been accepted'
+    );
+  }
+
+  async sendCancelationRequestRejectedAttendee() {
+    await this.send(
+      'cancelationRequestRejectedAttendee',
+      'Your booking cancelation request has been rejected'
     );
   }
 };
