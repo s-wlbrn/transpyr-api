@@ -10,13 +10,6 @@ const APIFeatures = require('../libs/apiFeatures');
 const Email = require('../libs/email');
 const factory = require('./handlerFactory');
 
-const authorizeGetBooking = (req, booking) => {
-  if (booking.user !== req.user.id && req.user.role !== 'admin') {
-    return false;
-  }
-  return true;
-};
-
 const getRefundRequests = async (query) => {
   const requestBookings = await Booking.aggregate([
     { $match: query },
@@ -156,7 +149,7 @@ exports.requestRefund = asyncCatch(async (req, res, next) => {
     return booking.save();
   });
   //update bookings
-  const updatedBookings = await Promise.all(updatedBookingsPromises);
+  await Promise.all(updatedBookingsPromises);
 
   //get event and send email to organizer
   const event = await Event.findById(req.params.id)
