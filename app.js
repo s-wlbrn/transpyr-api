@@ -29,15 +29,8 @@ app.enable('trust proxy');
 app.use('/static', express.static('public'));
 
 //Enable CORS
-app.use(cors({ credentials: true, origin: true }));
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', 'http://localhost:3001'); // update to match the domain you will make the request from
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'Origin, X-Requested-With, Content-Type, Accept'
-//   );
-//   next();
-// });
+app.use(cors());
+app.options('*', cors());
 
 // HTTP security headers
 app.use(helmet());
