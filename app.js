@@ -22,6 +22,8 @@ const bookingRouter = require('./routes/booking.routes');
 //create app
 const app = express();
 
+app.enable('trust proxy');
+
 ////Global Middleware
 //Serve static files
 app.use('/static', express.static('public'));

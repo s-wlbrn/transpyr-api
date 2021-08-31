@@ -68,7 +68,13 @@ const getRefreshToken = async (token) => {
   return refreshToken;
 };
 
-const createSendToken = async (user, statusCode, res, refreshToken = null) => {
+const createSendToken = async (
+  user,
+  statusCode,
+  req,
+  res,
+  refreshToken = null
+) => {
   const token = signToken(user._id);
   const newRefreshToken = generateRefreshToken(user._id);
   await newRefreshToken.save();
@@ -82,12 +88,10 @@ const createSendToken = async (user, statusCode, res, refreshToken = null) => {
 
   const cookieOptions = {
     expires: 0,
-    secure: false,
+    //Only send cookie over HTTPS if in production environment
+    secure: req.secure || req.headers('x-forwarded-proto' === 'https'),
     httpOnly: true,
   };
-
-  //Only send cookie over HTTPS if in production environment
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   //configure cookie
   res.cookie('refreshToken', newRefreshToken.token, cookieOptions);
@@ -111,7 +115,7 @@ exports.signup = asyncCatch(async (req, res, next) => {
   });
   const url = `${req.protocol}://${process.env.FRONTEND_HOST}/events/create-event`;
   await new Email(newUser, url).sendWelcome();
-  await createSendToken(newUser, 201, res);
+  await createSendToken(newUser, 201, req, res);
 });
 
 exports.signin = asyncCatch(async (req, res, next) => {
@@ -134,7 +138,7 @@ exports.signin = asyncCatch(async (req, res, next) => {
   }
 
   //send tokens
-  await createSendToken(user, 200, res);
+  await createSendToken(user, 200, req, res);
 });
 
 exports.forgotPassword = async (req, res, next) => {
@@ -232,7 +236,7 @@ exports.refreshToken = asyncCatch(async (req, res, next) => {
   const { user } = refreshToken;
 
   //Send new token in cookie, new jwt and user in res
-  await createSendToken(user, 200, res, refreshToken);
+  await createSendToken(user, 200, req, res, refreshToken);
 });
 
 exports.revokeToken = asyncCatch(async (req, res, next) => {
