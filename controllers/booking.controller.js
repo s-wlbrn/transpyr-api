@@ -316,6 +316,9 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   if (!customerEmail)
     return next(new AppError('Please specify an email for the booking.', 400));
 
+  //create order ID
+  const orderId = new mongoose.Types.ObjectId();
+
   //create Stripe line_items
   const lineItems = ticketKeys.map((ticketId) => {
     const selectedTicket = selectedTicketTiersMap[ticketId];
@@ -329,6 +332,9 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
         product_data: {
           name: `${event.name}: ${selectedTicket.tierName}`,
           description: selectedTicket.tierDescription,
+          metadata: {
+            ticketId: selectedTicket.id,
+          },
         },
       },
       quantity: tickets[ticketId],
@@ -350,13 +356,13 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   });
 
   //TEMP: Stringify the object to send to createCheckoutBookings as a query string
-  const queryString = qs.stringify({
-    name: req.body.name,
-    event: req.params.eventId,
-    user: user.id,
-    tickets: ticketsArray,
-    email: customerEmail,
-  });
+  // const queryString = qs.stringify({
+  //   name: req.body.name,
+  //   event: req.params.eventId,
+  //   user: user.id,
+  //   tickets: ticketsArray,
+  //   email: customerEmail,
+  // });
 
   //create checkout session
   const session = await stripe.checkout.sessions.create({
@@ -364,11 +370,16 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     mode: 'payment',
     //TEMPORARY: Creating booking documents requires stripe webhooks once app is deployed. Query string workaround is not secure.
     //This should be a special page on the front end that displays a spinner and calls a temp createCheckoutBookings route to call func
-    success_url: `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/create?${queryString}`,
+    success_url: `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/success/${orderId}`,
     cancel_url: `${req.protocol}://${process.env.FRONTEND_HOST}/events/id/${req.params.eventId}`,
     customer_email: customerEmail, //user email, will be either provided by guest or sent automatically if logged in
     client_reference_id: req.params.eventId,
     line_items: lineItems,
+    metadata: {
+      user: user.id,
+      name: req.body.name,
+      orderId,
+    },
   });
 
   //send to client
@@ -378,52 +389,89 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.createCheckoutBookings = async (req, res, next) => {
-  if (!req.query) return next(new AppError('Invalid checkout session.', 400));
+// exports.createCheckoutBookings = async (req, res, next) => {
+//   if (!req.query) return next(new AppError('Invalid checkout session.', 400));
 
-  //parse query string with qs directly since Express isn't doing it right
-  const { name, event, user, email, tickets } = qs.parse(
-    req.originalUrl.split('?')[1]
-  );
+//   //parse query string with qs directly since Express isn't doing it right
+//   const { name, event, user, email, tickets } = qs.parse(
+//     req.originalUrl.split('?')[1]
+//   );
 
-  if (!event || !email || !tickets || !name)
-    return next(new AppError('Invalid checkout session.', 400));
+//   if (!event || !email || !tickets || !name)
+//     return next(new AppError('Invalid checkout session.', 400));
 
-  //TEMP: qs bug is putting } at the end of email field
-  let fixedEmail = email.split('');
-  fixedEmail.pop();
-  fixedEmail = fixedEmail.join('');
+//   //TEMP: qs bug is putting } at the end of email field
+//   let fixedEmail = email.split('');
+//   fixedEmail.pop();
+//   fixedEmail = fixedEmail.join('');
 
-  //create bookings
+//   //create bookings
+//   const bookings = await Promise.all(
+//     tickets.map(async (ticket) => {
+//       return Booking.create({
+//         event,
+//         user,
+//         email: fixedEmail,
+//         name,
+//         ticket: ticket.ticket,
+//         price: ticket.price,
+//       });
+//     })
+//   );
+
+//   await new Email(
+//     { name, email },
+//     `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
+//   );
+//   if (user) {
+//     await Email.sendBookingSuccess();
+//   } else {
+//     await Email.sendBookingSuccessGuest();
+//   }
+
+//   res.status(201).json({
+//     status: 'success',
+//     data: {
+//       data: bookings,
+//     },
+//   });
+// };
+
+const createCheckoutBooking = async (session) => {
   const bookings = await Promise.all(
-    tickets.map(async (ticket) => {
+    session.display_items.map(async (item) => {
       return Booking.create({
-        event,
-        user,
-        email: fixedEmail,
-        name,
-        ticket: ticket.ticket,
-        price: ticket.price,
+        orderId: session.metadata.orderId,
+        event: session.client_reference_id,
+        user: session.metadata.user,
+        email: session.customer_email,
+        name: session.metadata.name,
+        ticket: item.metadata.ticketId,
+        price: item.unit_amount * 0.01,
       });
     })
   );
+};
 
-  await new Email(
-    { name, email },
-    `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
-  );
-  if (user) {
-    await Email.sendBookingSuccess();
-  } else {
-    await Email.sendBookingSuccessGuest();
+exports.webhookCheckout = async (req, res, next) => {
+  const signature = req.headers['stripe-signature'];
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    return res.status(400).send(`Webhook error: ${err.message}`);
   }
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      data: bookings,
-    },
-  });
+  if (event.type === 'checkout.session.completed') {
+    await createCheckoutBooking(event.data.object);
+  }
+
+  res.status(200).json({ received: true });
 };
 
 exports.createBookings = asyncCatch(async (req, res, next) => {

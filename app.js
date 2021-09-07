@@ -19,6 +19,9 @@ const eventRouter = require('./routes/event.routes');
 const userRouter = require('./routes/user.routes');
 const bookingRouter = require('./routes/booking.routes');
 
+//booking controller for webhook-checkout
+const bookingController = require('./controllers/booking.controller');
+
 //create app
 const app = express();
 
@@ -47,6 +50,13 @@ const limiter = rateLimit({
   message: 'Too many requests. Try again in one hour.',
 });
 app.use('/api', limiter);
+
+//Stripe webhook
+app.post(
+  'webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
 
 // Express body parser
 app.use(express.json({ limit: '5mb' }));

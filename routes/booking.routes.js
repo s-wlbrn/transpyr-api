@@ -10,10 +10,10 @@ router.post(
   bookingController.getCheckoutSession
 );
 
-router.get(
-  '/checkout-create-booking',
-  bookingController.createCheckoutBookings
-);
+// router.get(
+//   '/checkout-create-booking',
+//   bookingController.createCheckoutBookings
+// );
 
 router.use(authController.protectRoute);
 
