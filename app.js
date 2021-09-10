@@ -32,7 +32,7 @@ app.enable('trust proxy');
 app.use('/static', express.static('public'));
 
 //Enable CORS
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.options('*', cors());
 
 // HTTP security headers
