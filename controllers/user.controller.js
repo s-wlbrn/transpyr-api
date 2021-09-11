@@ -21,9 +21,11 @@ exports.resizeUserPhoto = asyncCatch(async (req, res, next) => {
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toBuffer();
-
-  await s3Upload(data, 'users', req.file.filename);
-
+  try {
+    await s3Upload(data, 'users', req.file.filename);
+  } catch (err) {
+    console.log(err);
+  }
   next();
 });
 
