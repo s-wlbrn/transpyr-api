@@ -41,7 +41,7 @@ router
   .patch(
     eventController.getAndAuthorizeEvent,
     eventController.uploadEventPhoto,
-    eventController.convertEventPhotoJpeg,
+    eventController.processEventPhoto,
     eventController.updateEvent
   )
   //Delete event

@@ -32,7 +32,7 @@ router
   .get(userController.getMe, userController.getUser)
   .patch(
     userController.uploadUserPhoto,
-    userController.resizeUserPhoto,
+    userController.processUserPhoto,
     userController.updateMe
   )
   .delete(userController.deactivateMe);

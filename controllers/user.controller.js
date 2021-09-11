@@ -11,7 +11,7 @@ const s3Upload = require('../libs/s3Upload');
 
 exports.uploadUserPhoto = multerUpload.single('photo');
 
-exports.resizeUserPhoto = asyncCatch(async (req, res, next) => {
+exports.processUserPhoto = asyncCatch(async (req, res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `${req.user.id}-${Date.now()}.jpeg`;
@@ -21,11 +21,9 @@ exports.resizeUserPhoto = asyncCatch(async (req, res, next) => {
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toBuffer();
-  try {
-    await s3Upload(data, 'users', req.file.filename);
-  } catch (err) {
-    console.log(err);
-  }
+
+  await s3Upload(data, 'users', req.file.filename);
+
   next();
 });
 

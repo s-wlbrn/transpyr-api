@@ -8,6 +8,7 @@ const filterFields = require('../libs/filterFields');
 const APIFeatures = require('../libs/apiFeatures');
 const { cancelAllBookings } = require('./booking.controller');
 const multerUpload = require('../libs/multerUpload');
+const s3Upload = require('../libs/s3Upload');
 
 //passed to getOne handler to handle unpublished events
 const authorizeUnpublishedEvent = (req, event) => {
@@ -23,16 +24,20 @@ const authorizeUnpublishedEvent = (req, event) => {
 
 exports.uploadEventPhoto = multerUpload.single('photo');
 
-exports.convertEventPhotoJpeg = (req, res, next) => {
+exports.processEventPhoto = asyncCatch(async (req, res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `${req.params.id}.jpeg`;
-  sharp(req.file.buffer)
+
+  const data = await sharp(req.file.buffer)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
-    .toFile(`public/img/events/${req.file.filename}`);
+    .toBuffer();
+
+  await s3Upload(data, 'events', req.file.filename);
+
   next();
-};
+});
 
 exports.attachEventOrganizer = (req, res, next) => {
   req.body.organizer = req.user._id;
