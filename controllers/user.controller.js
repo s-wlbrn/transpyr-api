@@ -7,22 +7,25 @@ const factory = require('./handlerFactory');
 const filterQueryList = require('../libs/filterQueryList');
 const APIFeatures = require('../libs/apiFeatures');
 const multerUpload = require('../libs/multerUpload');
+const s3Upload = require('../libs/s3Upload');
 
 exports.uploadUserPhoto = multerUpload.single('photo');
 
-exports.resizeUserPhoto = (req, res, next) => {
+exports.resizeUserPhoto = asyncCatch(async (req, res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `${req.user.id}-${Date.now()}.jpeg`;
 
-  sharp(req.file.buffer)
+  const data = await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.file.filename}`);
+    .toBuffer();
+
+  await s3Upload(data, 'users', req.file.filename);
 
   next();
-};
+});
 
 //Me controllers
 exports.getMe = (req, res, next) => {
