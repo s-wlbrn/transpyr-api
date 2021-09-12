@@ -10,6 +10,8 @@ router.post(
   bookingController.getCheckoutSession
 );
 
+router.get('/order/:id', bookingController.getOrder);
+
 // router.get(
 //   '/checkout-create-booking',
 //   bookingController.createCheckoutBookings

@@ -7,6 +7,8 @@ const hpp = require('hpp');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const aws = require('aws-sdk');
+const asyncCatch = require('./libs/asyncCatch');
 
 //import custom error class
 const AppError = require('./libs/AppError');
@@ -72,6 +74,24 @@ app.use(hpp());
 
 // Compression
 app.use(compression());
+
+//Stream image from S3 bucket
+app.get(
+  '/image/:folder/:id',
+  asyncCatch(async (req, res, next) => {
+    const s3 = new aws.S3();
+    const { folder, id } = req.params;
+
+    const stream = await s3
+      .getObject({ Bucket: 'transpyr-storage', Key: `${folder}/${id}` })
+      .createReadStream()
+      .on('error', (error) => {
+        return next(error);
+      });
+
+    stream.pipe(res);
+  })
+);
 
 //Mount routes
 app.use('/api/events', eventRouter);

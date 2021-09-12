@@ -32,6 +32,10 @@ const refundRequestSchema = new mongoose.Schema({
 
 const bookingSchema = new mongoose.Schema(
   {
+    orderId: {
+      type: mongoose.Types.ObjectId,
+      required: [true, 'Booking must belong to an order.'],
+    },
     name: {
       type: String,
       required: [true, 'Booking must have a name.'],
@@ -50,10 +54,6 @@ const bookingSchema = new mongoose.Schema(
       ref: 'Event',
       required: [true, 'Booking must belong to an event.'],
     },
-    // email: {
-    //   type: String,
-    //   default: this.bookingEmail,
-    // },
     ticket: {
       type: mongoose.Schema.ObjectId,
       ref: 'Event.ticketTiers',

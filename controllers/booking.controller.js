@@ -322,6 +322,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   //create Stripe line_items
   const lineItems = ticketKeys.map((ticketId) => {
     const selectedTicket = selectedTicketTiersMap[ticketId];
+
     return {
       price_data: {
         currency: 'usd',
@@ -333,7 +334,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
           name: `${event.name}: ${selectedTicket.tierName}`,
           description: selectedTicket.tierDescription,
           metadata: {
-            ticketId: selectedTicket.id,
+            ticketId: String(selectedTicket._id),
           },
         },
       },
@@ -341,19 +342,19 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     };
   });
 
-  //Create tickets array for creating database bookings
-  //TODO create bookings with paid:false and update after successful checkout
-  const ticketsArray = ticketKeys.flatMap((ticketId) => {
-    const individualBookings = [];
-    // create booking objects with ticket id and price according to quantity
-    for (let i = 0; i < tickets[ticketId]; i += 1) {
-      individualBookings.push({
-        ticket: ticketId,
-        price: selectedTicketTiersMap[ticketId].price,
-      });
-    }
-    return individualBookings;
-  });
+  // //Create tickets array for creating database bookings
+  // //TODO create bookings with paid:false and update after successful checkout
+  // const ticketsArray = ticketKeys.flatMap((ticketId) => {
+  //   const individualBookings = [];
+  //   // create booking objects with ticket id and price according to quantity
+  //   for (let i = 0; i < tickets[ticketId]; i += 1) {
+  //     individualBookings.push({
+  //       ticket: ticketId,
+  //       price: selectedTicketTiersMap[ticketId].price,
+  //     });
+  //   }
+  //   return individualBookings;
+  // });
 
   //TEMP: Stringify the object to send to createCheckoutBookings as a query string
   // const queryString = qs.stringify({
@@ -376,9 +377,9 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     client_reference_id: req.params.eventId,
     line_items: lineItems,
     metadata: {
-      user: user.id,
+      user: String(user._id),
       name: req.body.name,
-      orderId,
+      orderId: String(orderId),
     },
   });
 
@@ -518,6 +519,27 @@ exports.getBookings = asyncCatch(async (req, res, next) => {
     });
   }
   const bookings = await queryFeatures.query;
+
+  res.status(200).json({
+    status: 'success',
+    length: bookings.length,
+    data: bookings,
+  });
+});
+
+exports.getOrder = asyncCatch(async (req, res, next) => {
+  //TODO: Make endpoint an aggregation with fields for name, email, event name, number of tickets, and order total
+  if (!req.params.id)
+    return next(new AppError('Please specify an order ID', 400));
+
+  const bookings = await Booking.find({ orderId: req.params.id }).select(
+    'name email event ticket price'
+  );
+
+  if (!bookings)
+    return next(
+      new AppError('No bookings found with specified order ID.', 404)
+    );
 
   res.status(200).json({
     status: 'success',
