@@ -55,7 +55,7 @@ app.use('/api', limiter);
 
 //Stripe webhook
 app.post(
-  'webhook-checkout',
+  '/webhook-checkout',
   express.raw({ type: 'application/json' }),
   bookingController.webhookCheckout
 );
