@@ -339,7 +339,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
       quantity: tickets[ticketId],
     };
   });
-  console.log(lineItems[0].price_data.product_data);
+
   // //Create tickets array for creating database bookings
   // //TODO create bookings with paid:false and update after successful checkout
   // const ticketsArray = ticketKeys.flatMap((ticketId) => {
@@ -439,14 +439,13 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
 const createCheckoutBooking = async (session) => {
   const bookings = await Promise.all(
     session.line_items.data.map(async (item) => {
-      console.log(item.price.metadata);
       return Booking.create({
         orderId: session.metadata.orderId,
         event: session.client_reference_id,
         user: session.metadata.user,
         email: session.customer_email,
         name: session.metadata.name,
-        ticket: item.price.metadata.ticketId,
+        ticket: item.price.product.metadata.ticketId,
         price: item.unit_amount * 0.01,
       });
     })
@@ -472,7 +471,7 @@ exports.webhookCheckout = async (req, res, next) => {
     const session = await stripe.checkout.sessions.retrieve(
       event.data.object.id,
       {
-        expand: ['line_items'],
+        expand: ['line_items', 'line_items.data.price.product'],
       }
     );
     await createCheckoutBooking(session);
