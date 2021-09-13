@@ -438,6 +438,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
 // };
 
 const createCheckoutBooking = async (session) => {
+  console.log(session);
   const bookings = await Promise.all(
     session.display_items.map(async (item) => {
       return Booking.create({
@@ -468,7 +469,14 @@ exports.webhookCheckout = async (req, res, next) => {
   }
 
   if (event.type === 'checkout.session.completed') {
-    await createCheckoutBooking(event.data.object);
+    //stripe event does not include line_items- need to retrieve checkout session
+    const session = await stripe.checkout.sessions.retrieve(
+      event.data.object.id,
+      {
+        expand: ['line_items'],
+      }
+    );
+    await createCheckoutBooking(session);
   }
 
   res.status(200).json({ received: true });
