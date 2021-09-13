@@ -321,7 +321,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   //create Stripe line_items
   const lineItems = ticketKeys.map((ticketId) => {
     const selectedTicket = selectedTicketTiersMap[ticketId];
-
+    console.log(selectedTicket);
     return {
       price_data: {
         currency: 'usd',
@@ -340,7 +340,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
       quantity: tickets[ticketId],
     };
   });
-
+  console.log(lineItems);
   // //Create tickets array for creating database bookings
   // //TODO create bookings with paid:false and update after successful checkout
   // const ticketsArray = ticketKeys.flatMap((ticketId) => {
