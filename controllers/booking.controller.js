@@ -446,7 +446,7 @@ const createCheckoutBooking = async (session) => {
         email: session.customer_email,
         name: session.metadata.name,
         ticket: item.price.product.metadata.ticketId,
-        price: item.unit_amount * 0.01,
+        price: Number(item.unit_amount) * 0.01,
       });
     })
   );
