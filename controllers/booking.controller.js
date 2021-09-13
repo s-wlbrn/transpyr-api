@@ -339,7 +339,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
       quantity: tickets[ticketId],
     };
   });
-  console.log(lineItems[0].product_data);
+  console.log(lineItems[0].price_data.product_data);
   // //Create tickets array for creating database bookings
   // //TODO create bookings with paid:false and update after successful checkout
   // const ticketsArray = ticketKeys.flatMap((ticketId) => {
