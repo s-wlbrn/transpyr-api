@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const qs = require('qs');
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
 const Booking = require('../models/booking.model');
@@ -462,7 +461,7 @@ exports.webhookCheckout = async (req, res, next) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET
+      Buffer.from(process.env.STRIPE_WEBHOOK_SECRET)
     );
   } catch (err) {
     return res.status(400).send(`Webhook error: ${err.message}`);
