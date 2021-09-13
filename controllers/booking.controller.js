@@ -439,7 +439,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
 const createCheckoutBooking = async (session) => {
   const bookings = await Promise.all(
     session.line_items.data.map(async (item) => {
-      console.log(Number(item.unit_amount) * 0.01);
+      console.log(typeof item.unit_amount, typeof Number(item.unit_amount));
       return Booking.create({
         orderId: session.metadata.orderId,
         event: session.client_reference_id,
