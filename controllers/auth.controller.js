@@ -87,7 +87,7 @@ const createSendToken = async (
   }
 
   const cookieOptions = {
-    expires: 0,
+    expires: Date.now() + 604800000,
     //Only send cookie over HTTPS if in production environment
     secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
     httpOnly: true,
@@ -232,6 +232,7 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 });
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {
+  console.log(req.cookies);
   const token = req.cookies.refreshToken;
   const refreshToken = await getRefreshToken(token);
   const { user } = refreshToken;
