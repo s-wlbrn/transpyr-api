@@ -87,7 +87,7 @@ const createSendToken = async (
   }
 
   const cookieOptions = {
-    expires: Date.now() + 604800000,
+    expires: new Date(Date.now() + 604800000),
     //Only send cookie over HTTPS if in production environment
     secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
     httpOnly: true,
