@@ -450,7 +450,6 @@ const createCheckoutBooking = async (session) => {
       });
     })
   );
-  console.log(bookings);
 };
 
 exports.webhookCheckout = async (req, res, next) => {

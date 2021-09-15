@@ -232,7 +232,6 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 });
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {
-  console.log(req.cookies);
   const token = req.cookies.refreshToken;
   const refreshToken = await getRefreshToken(token);
   const { user } = refreshToken;
