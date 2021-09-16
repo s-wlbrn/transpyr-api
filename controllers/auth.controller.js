@@ -118,7 +118,7 @@ exports.signup = asyncCatch(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
   });
-  const url = `${req.protocol}://${process.env.FRONTEND_HOST}/events/create-event`;
+  const url = `${req.protocol}://${process.env.FRONTEND_HOST}/events/create`;
   await new Email(newUser, url).sendWelcome();
   await createSendToken(newUser, 201, req, res);
 });
