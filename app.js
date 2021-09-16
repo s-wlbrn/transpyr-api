@@ -34,7 +34,9 @@ app.enable('trust proxy');
 app.use('/static', express.static('public'));
 
 //Enable CORS
-app.use(cors({ origin: process.env.FRONTEND_HOST, credentials: true }));
+app.use(
+  cors({ origin: `https://${process.env.FRONTEND_HOST}`, credentials: true })
+);
 app.options('*', cors());
 
 // HTTP security headers
