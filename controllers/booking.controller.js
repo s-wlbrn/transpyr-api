@@ -156,7 +156,7 @@ exports.requestRefund = asyncCatch(async (req, res, next) => {
     .populate('organizer');
   await new Email(
     event.organizer,
-    `${process.env.FRONTEND_HOST}/bookings/refund-requests/${requestId}`
+    `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/refund-requests/${requestId}`
   ).sendCancelationRequestOrganizer();
 
   res.status(204).json({

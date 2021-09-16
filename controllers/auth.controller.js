@@ -75,6 +75,10 @@ const createSendToken = async (
   res,
   refreshToken = null
 ) => {
+  if (!user) {
+    throw new AppError('Invalid user', 400);
+  }
+
   const token = signToken(user._id);
   const newRefreshToken = generateRefreshToken(user._id);
   await newRefreshToken.save();
