@@ -37,7 +37,7 @@ const ticketTiersSchema = new mongoose.Schema(
       min: [1, 'Per-customer limit must 1 or greater.'],
       validate: {
         validator: function (v) {
-          return this.capacity === 0 ? true : v < this.capacity;
+          return this.capacity === 0 ? true : v <= this.capacity;
         },
         message: 'Limit per customer cannot exceed ticket capacity.',
       },
