@@ -9,32 +9,40 @@ const Email = require('../libs/email');
 const factory = require('./handlerFactory');
 
 const createCheckoutBooking = async (session) => {
-  const bookings = await Promise.all(
-    session.line_items.data.map(async (item) => {
-      return Booking.create({
-        orderId: session.metadata.orderId,
-        event: session.client_reference_id,
-        user: session.metadata.user,
-        email: session.customer_email,
-        name: session.metadata.name,
-        ticket: item.price.product.metadata.ticketId,
-        price: Number(item.price.unit_amount) * 0.01,
-      });
-    })
-  );
+  try {
+    const bookings = await Promise.all(
+      session.line_items.data.map(async (item) => {
+        return Booking.create({
+          orderId: session.metadata.orderId,
+          event: session.client_reference_id,
+          user: session.metadata.user,
+          email: session.customer_email,
+          name: session.metadata.name,
+          ticket: item.price.product.metadata.ticketId,
+          price: Number(item.price.unit_amount) * 0.01,
+        });
+      })
+    );
 
-  return bookings;
+    return bookings;
+  } catch (err) {
+    return Promise.reject(err);
+  }
 };
 
 const sendBookingSuccessEmail = async (name, email, event, user) => {
-  await new Email(
-    { name, email },
-    `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
-  );
-  if (user) {
-    await Email.sendBookingSuccess();
-  } else {
-    await Email.sendBookingSuccessGuest();
+  try {
+    await new Email(
+      { name, email },
+      `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
+    );
+    if (user) {
+      await Email.sendBookingSuccess();
+    } else {
+      await Email.sendBookingSuccessGuest();
+    }
+  } catch (err) {
+    return Promise.reject(err);
   }
 };
 
@@ -342,15 +350,15 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   if (!req.customerEmail)
     return next(new AppError('Please specify an email for the booking.', 400));
 
+  //create order ID
+  req.orderId = new mongoose.Types.ObjectId();
+
   //if paid event move on to stripe
   if (orderTotal > 0) {
     req.ticketKeys = ticketKeys;
     req.selectedTicketTiersMap = selectedTicketTiersMap;
     return next();
   }
-
-  //create order ID
-  req.orderId = new mongoose.Types.ObjectId();
 
   //if free, create bookings
   //mimic stripe session data
@@ -448,7 +456,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.webhookCheckout = async (req, res, next) => {
+exports.webhookCheckout = asyncCatch(async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
   let event;
@@ -480,7 +488,7 @@ exports.webhookCheckout = async (req, res, next) => {
   }
 
   res.status(200).json({ received: true });
-};
+});
 
 exports.createBookings = asyncCatch(async (req, res, next) => {
   const { name, event, user, email, tickets } = req.body;
