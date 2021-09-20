@@ -6,7 +6,8 @@ const router = express.Router();
 
 router.post(
   '/checkout-session/:eventId',
-  //authController.protectRoute,
+  authController.getAttachUser,
+  bookingController.createValidateCheckout,
   bookingController.getCheckoutSession
 );
 

@@ -9,6 +9,34 @@ const APIFeatures = require('../libs/apiFeatures');
 const Email = require('../libs/email');
 const factory = require('./handlerFactory');
 
+const createCheckoutBooking = async (session) => {
+  const bookings = await Promise.all(
+    session.line_items.data.map(async (item) => {
+      return Booking.create({
+        orderId: session.metadata.orderId,
+        event: session.client_reference_id,
+        user: session.metadata.user,
+        email: session.customer_email,
+        name: session.metadata.name,
+        ticket: item.price.product.metadata.ticketId,
+        price: Number(item.price.unit_amount) * 0.01,
+      });
+    })
+  );
+};
+
+const sendBookingSuccessEmail = async (name, email, event, user) => {
+  await new Email(
+    { name, email },
+    `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
+  );
+  if (user) {
+    await Email.sendBookingSuccess();
+  } else {
+    await Email.sendBookingSuccessGuest();
+  }
+};
+
 const getRefundRequests = async (query) => {
   const requestBookings = await Booking.aggregate([
     { $match: query },
@@ -205,25 +233,30 @@ exports.getEventRefundRequests = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
+exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   const { tickets } = req.body;
   //get event to book from params
-  const event = await Event.findById(req.params.eventId).populate({
+  req.bookedEvent = await Event.findById(req.params.eventId).populate({
     path: 'ticketTiers.numBookings',
     select: '_id',
     match: {
       active: true,
     },
   });
+  const { bookedEvent } = req;
+
+  //handle no name
+  if (!req.body.name)
+    return next(new AppError('A name for the order is required.', 400));
 
   //handle no event
-  if (!event)
+  if (!bookedEvent)
     return next(new AppError('The specified event does not exist.', 404));
   //handle event canceled
-  if (event.canceled)
+  if (bookedEvent.canceled)
     return next(new AppError('The specified event is canceled.', 400));
   //handle event sold out
-  if (event.soldOut)
+  if (bookedEvent.soldOut)
     return next(new AppError('The specified event is sold out.', 400));
 
   //calculate total number of tickets requested
@@ -235,8 +268,8 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
 
   //handle requested tickets going over capacity
   if (
-    event.totalCapacity > 0 &&
-    selectedTicketsCount + event.totalBookings > event.totalCapacity
+    bookedEvent.totalCapacity > 0 &&
+    selectedTicketsCount + bookedEvent.totalBookings > bookedEvent.totalCapacity
   )
     return next(
       new AppError(
@@ -247,11 +280,12 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
 
   //map info for all selected tickets
   const selectedTicketTiersMap = ticketKeys.reduce((acc, ticketId) => {
-    const ticket = event.ticketTiers.find((el) => el.id === ticketId);
+    const ticket = bookedEvent.ticketTiers.find((el) => el.id === ticketId);
     return { ...acc, [ticketId]: { ...ticket._doc } };
   }, {});
 
-  //validate each ticket selection
+  //validate each ticket selection and add price to order total
+  let orderTotal = 0;
   ticketKeys.forEach((ticketId) => {
     const selectedTicket = selectedTicketTiersMap[ticketId];
     //handle ticket canceled
@@ -297,71 +331,90 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
         )
       );
     }
+
+    orderTotal += selectedTicket.price;
   });
 
-  //if user sent, fetch user
-  let user = '';
-  if (req.body.user) {
-    const userDoc = await User.findById(req.body.user);
-    //handle invalid user
-    if (!userDoc)
-      return next(new AppError('No user with the specified ID exists', 404));
-    user = userDoc;
-  }
-
   //get email
-  const customerEmail = user.email || req.body.email;
+  req.customerEmail = req.user.email || req.body.email;
   //handle no booking email
-  if (!customerEmail)
+  if (!req.customerEmail)
     return next(new AppError('Please specify an email for the booking.', 400));
 
+  //if paid event move on to stripe
+  if (orderTotal > 0) {
+    req.ticketKeys = ticketKeys;
+    req.selectedTicketTiersMap = selectedTicketTiersMap;
+    return next();
+  }
+
   //create order ID
-  const orderId = new mongoose.Types.ObjectId();
+  req.orderId = new mongoose.Types.ObjectId();
+
+  //if free, create bookings
+  //mimic stripe session data
+  const session = {
+    metadata: {
+      orderId: req.orderId,
+      user: req.user ? req.user._id : null,
+      name: req.body.name,
+    },
+    client_reference_id: bookedEvent._id,
+    customer_email: req.customerEmail,
+    line_items: ticketKeys.flatMap((ticketId) => {
+      const individualBookings = [];
+      // create booking objects with ticket id and price according to quantity
+      for (let i = 0; i < tickets[ticketId]; i += 1) {
+        individualBookings.push({
+          price: {
+            product: {
+              unit_amount: selectedTicketTiersMap[ticketId].price * 100,
+              metadata: {
+                ticketId,
+              },
+            },
+          },
+        });
+      }
+      return individualBookings;
+    }),
+  };
+
+  const bookings = await createCheckoutBooking(session);
+
+  res.status(201).json({
+    status: 'success',
+    data: {
+      data: bookings,
+    },
+  });
+});
+
+exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
+  //destructure order ID
+  const { orderId } = req;
 
   //create Stripe line_items
-  const lineItems = ticketKeys.map((ticketId) => {
-    const selectedTicket = selectedTicketTiersMap[ticketId];
+  const lineItems = req.ticketKeys.map((ticketId) => {
+    const selectedTicket = req.selectedTicketTiersMap[ticketId];
     return {
       price_data: {
         currency: 'usd',
         unit_amount:
-          event.feePolicy === 'passFee'
+          req.bookedEvent.feePolicy === 'passFee'
             ? Math.floor(selectedTicket.price * 1.03 * 100)
             : selectedTicket.price * 100,
         product_data: {
-          name: `${event.name}: ${selectedTicket.tierName}`,
+          name: `${req.bookedEvent.name}: ${selectedTicket.tierName}`,
           description: selectedTicket.tierDescription,
           metadata: {
             ticketId: String(selectedTicket._id),
           },
         },
       },
-      quantity: tickets[ticketId],
+      quantity: req.body.tickets[ticketId],
     };
   });
-
-  // //Create tickets array for creating database bookings
-  // //TODO create bookings with paid:false and update after successful checkout
-  // const ticketsArray = ticketKeys.flatMap((ticketId) => {
-  //   const individualBookings = [];
-  //   // create booking objects with ticket id and price according to quantity
-  //   for (let i = 0; i < tickets[ticketId]; i += 1) {
-  //     individualBookings.push({
-  //       ticket: ticketId,
-  //       price: selectedTicketTiersMap[ticketId].price,
-  //     });
-  //   }
-  //   return individualBookings;
-  // });
-
-  //TEMP: Stringify the object to send to createCheckoutBookings as a query string
-  // const queryString = qs.stringify({
-  //   name: req.body.name,
-  //   event: req.params.eventId,
-  //   user: user.id,
-  //   tickets: ticketsArray,
-  //   email: customerEmail,
-  // });
 
   //create checkout session
   const session = await stripe.checkout.sessions.create({
@@ -371,11 +424,11 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     //This should be a special page on the front end that displays a spinner and calls a temp createCheckoutBookings route to call func
     success_url: `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/success/${orderId}`,
     cancel_url: `${req.protocol}://${process.env.FRONTEND_HOST}/events/id/${req.params.eventId}`,
-    customer_email: customerEmail, //user email, will be either provided by guest or sent automatically if logged in
+    customer_email: req.customerEmail, //user email, will be either provided by guest or sent automatically if logged in
     client_reference_id: req.params.eventId,
     line_items: lineItems,
     metadata: {
-      user: String(user._id),
+      user: req.user ? String(req.user._id) : null,
       name: req.body.name,
       orderId: String(orderId),
     },
@@ -387,70 +440,6 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     id: session.id,
   });
 });
-
-// exports.createCheckoutBookings = async (req, res, next) => {
-//   if (!req.query) return next(new AppError('Invalid checkout session.', 400));
-
-//   //parse query string with qs directly since Express isn't doing it right
-//   const { name, event, user, email, tickets } = qs.parse(
-//     req.originalUrl.split('?')[1]
-//   );
-
-//   if (!event || !email || !tickets || !name)
-//     return next(new AppError('Invalid checkout session.', 400));
-
-//   //TEMP: qs bug is putting } at the end of email field
-//   let fixedEmail = email.split('');
-//   fixedEmail.pop();
-//   fixedEmail = fixedEmail.join('');
-
-//   //create bookings
-//   const bookings = await Promise.all(
-//     tickets.map(async (ticket) => {
-//       return Booking.create({
-//         event,
-//         user,
-//         email: fixedEmail,
-//         name,
-//         ticket: ticket.ticket,
-//         price: ticket.price,
-//       });
-//     })
-//   );
-
-//   await new Email(
-//     { name, email },
-//     `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
-//   );
-//   if (user) {
-//     await Email.sendBookingSuccess();
-//   } else {
-//     await Email.sendBookingSuccessGuest();
-//   }
-
-//   res.status(201).json({
-//     status: 'success',
-//     data: {
-//       data: bookings,
-//     },
-//   });
-// };
-
-const createCheckoutBooking = async (session) => {
-  const bookings = await Promise.all(
-    session.line_items.data.map(async (item) => {
-      return Booking.create({
-        orderId: session.metadata.orderId,
-        event: session.client_reference_id,
-        user: session.metadata.user,
-        email: session.customer_email,
-        name: session.metadata.name,
-        ticket: item.price.product.metadata.ticketId,
-        price: Number(item.price.unit_amount) * 0.01,
-      });
-    })
-  );
-};
 
 exports.webhookCheckout = async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
