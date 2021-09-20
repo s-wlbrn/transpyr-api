@@ -378,11 +378,11 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
           individualBookings.push({
             price: {
               product: {
-                unit_amount: selectedTicketTiersMap[ticketId].price * 100,
                 metadata: {
                   ticketId,
                 },
               },
+              unit_amount: selectedTicketTiersMap[ticketId].price * 100,
             },
           });
         }
