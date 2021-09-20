@@ -370,23 +370,25 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
     },
     client_reference_id: bookedEvent._id,
     customer_email: req.customerEmail,
-    line_items: ticketKeys.flatMap((ticketId) => {
-      const individualBookings = [];
-      // create booking objects with ticket id and price according to quantity
-      for (let i = 0; i < tickets[ticketId]; i += 1) {
-        individualBookings.push({
-          price: {
-            product: {
-              unit_amount: selectedTicketTiersMap[ticketId].price * 100,
-              metadata: {
-                ticketId,
+    line_items: {
+      data: ticketKeys.flatMap((ticketId) => {
+        const individualBookings = [];
+        // create booking objects with ticket id and price according to quantity
+        for (let i = 0; i < tickets[ticketId]; i += 1) {
+          individualBookings.push({
+            price: {
+              product: {
+                unit_amount: selectedTicketTiersMap[ticketId].price * 100,
+                metadata: {
+                  ticketId,
+                },
               },
             },
-          },
-        });
-      }
-      return individualBookings;
-    }),
+          });
+        }
+        return individualBookings;
+      }),
+    },
   };
 
   const bookings = await createCheckoutBooking(session);

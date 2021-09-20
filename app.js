@@ -91,6 +91,7 @@ app.get(
         return next(error);
       });
 
+    res.header('Content-Type', 'image/jpeg');
     stream.pipe(res);
   })
 );
