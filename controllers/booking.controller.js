@@ -337,7 +337,7 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   });
 
   //get email
-  req.customerEmail = req.user.email || req.body.email;
+  req.customerEmail = req.user ? req.user.email : req.body.email;
   //handle no booking email
   if (!req.customerEmail)
     return next(new AppError('Please specify an email for the booking.', 400));
