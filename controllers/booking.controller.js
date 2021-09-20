@@ -365,7 +365,7 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   const session = {
     metadata: {
       orderId: req.orderId,
-      user: req.user ? req.user._id : null,
+      user: req.user ? req.user._id : undefined,
       name: req.body.name,
     },
     client_reference_id: bookedEvent._id,
@@ -445,7 +445,7 @@ exports.getCheckoutSession = asyncCatch(async (req, res, next) => {
     client_reference_id: req.params.eventId,
     line_items: lineItems,
     metadata: {
-      user: req.user ? String(req.user._id) : null,
+      user: req.user ? String(req.user._id) : undefined,
       name: req.body.name,
       orderId: String(orderId),
     },
