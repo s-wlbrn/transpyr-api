@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Event = require('../models/event.model');
-const User = require('../models/user.model');
 const Booking = require('../models/booking.model');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
@@ -23,6 +22,8 @@ const createCheckoutBooking = async (session) => {
       });
     })
   );
+
+  return bookings;
 };
 
 const sendBookingSuccessEmail = async (name, email, event, user) => {
@@ -381,11 +382,17 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   };
 
   const bookings = await createCheckoutBooking(session);
+  await sendBookingSuccessEmail(
+    req.body.name,
+    req.customerEmail,
+    bookedEvent._id,
+    req.user
+  );
 
   res.status(201).json({
     status: 'success',
     data: {
-      data: bookings,
+      bookings,
     },
   });
 });
@@ -464,6 +471,12 @@ exports.webhookCheckout = async (req, res, next) => {
       }
     );
     await createCheckoutBooking(session);
+    await sendBookingSuccessEmail(
+      session.metadata.name,
+      session.customer_email,
+      session.client_reference_id,
+      session.metadata.user
+    );
   }
 
   res.status(200).json({ received: true });
