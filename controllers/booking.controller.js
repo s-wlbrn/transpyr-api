@@ -32,14 +32,14 @@ const createCheckoutBooking = async (session) => {
 
 const sendBookingSuccessEmail = async (name, email, event, user) => {
   try {
-    await new Email(
+    const mailer = await new Email(
       { name, email },
       `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
     );
     if (user) {
-      await Email.sendBookingSuccess();
+      await mailer.sendBookingSuccess();
     } else {
-      await Email.sendBookingSuccessGuest();
+      await mailer.sendBookingSuccessGuest();
     }
   } catch (err) {
     return Promise.reject(err);
