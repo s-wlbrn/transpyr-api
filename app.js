@@ -35,7 +35,13 @@ app.use('/static', express.static('public'));
 
 //Enable CORS
 app.use(
-  cors({ origin: `https://${process.env.FRONTEND_HOST}`, credentials: true })
+  cors({
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? `https://${process.env.FRONTEND_HOST}`
+        : 'http://localhost:3001',
+    credentials: true,
+  })
 );
 app.options('*', cors());
 
