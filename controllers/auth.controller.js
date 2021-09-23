@@ -90,21 +90,11 @@ const createSendToken = async (
     await refreshToken.save();
   }
 
-  const cookieOptions = {
-    expires: new Date(Date.now() + 604800000),
-    //Only send cookie over HTTPS if in production environment
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-    httpOnly: true,
-    sameSite: 'none',
-  };
-
-  //configure cookie
-  res.cookie('refreshToken', newRefreshToken.token, cookieOptions);
-
   res.status(statusCode).json({
     status: 'success',
     token,
     expiresIn: process.env.JWT_EXPIRES_IN,
+    refreshToken: newRefreshToken.token,
     data: {
       user: { ...user._doc, password: undefined },
     },
@@ -236,25 +226,23 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 });
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {
-  const token = req.cookies.refreshToken;
+  const token = req.body.refreshToken;
+
   const refreshToken = await getRefreshToken(token);
   const { user } = refreshToken;
 
-  //Send new token in cookie, new jwt and user in res
+  //Send new refresh jwt and user in res
   await createSendToken(user, 200, req, res, refreshToken);
 });
 
 exports.revokeToken = asyncCatch(async (req, res, next) => {
-  const token = req.body.token || req.cookies.refreshToken;
+  const token = req.body.refreshToken;
 
   if (!token) return next(new AppError('Token is required', 400));
-
   //get token
   const refreshTokenToRevoke = await RefreshToken.findOne({ token });
-
   //handle invalid token
   if (!refreshTokenToRevoke) return next(new AppError('Invalid token.', 400));
-
   //handle user is not admin and does not own token
   if (!refreshTokenToRevoke.user === req.user.id && !req.user.role === 'admin')
     return next(new AppError('Unauthorized', 401));
