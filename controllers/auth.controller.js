@@ -236,12 +236,20 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 });
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {
+<<<<<<< HEAD
   const token = req.cookies.refreshToken;
+=======
+  const token = req.cookie.refreshToken;
+>>>>>>> ae3be5b032005bcbafe3b733668b3af70a8cde51
 
   const refreshToken = await getRefreshToken(token);
   const { user } = refreshToken;
 
+<<<<<<< HEAD
   //Send refresh token in cookie, jwt and user in res
+=======
+  //Send refresh token in cookie and user in res
+>>>>>>> ae3be5b032005bcbafe3b733668b3af70a8cde51
   await createSendToken(user, 200, req, res, refreshToken);
 });
 
