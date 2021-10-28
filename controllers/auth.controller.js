@@ -90,11 +90,21 @@ const createSendToken = async (
     await refreshToken.save();
   }
 
+  const cookieOptions = {
+    expires: new Date(Date.now() + 604800000),
+    //Only send cookie over HTTPS if in production environment
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+    httpOnly: true,
+    sameSite: 'none',
+  };
+
+  //configure cookie
+  res.cookie('refreshToken', newRefreshToken.token, cookieOptions);
+
   res.status(statusCode).json({
     status: 'success',
     token,
     expiresIn: process.env.JWT_EXPIRES_IN,
-    refreshToken: newRefreshToken.token,
     data: {
       user: { ...user._doc, password: undefined },
     },
@@ -226,17 +236,17 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 });
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {
-  const token = req.body.refreshToken;
+  const token = req.cookie.refreshToken;
 
   const refreshToken = await getRefreshToken(token);
   const { user } = refreshToken;
 
-  //Send new refresh jwt and user in res
+  //Send refresh token in cookie and user in res
   await createSendToken(user, 200, req, res, refreshToken);
 });
 
 exports.revokeToken = asyncCatch(async (req, res, next) => {
-  const token = req.body.refreshToken;
+  const token = req.body.token || req.cookies.refreshToken;
 
   if (!token) return next(new AppError('Token is required', 400));
   //get token
