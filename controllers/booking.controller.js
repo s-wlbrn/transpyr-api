@@ -545,7 +545,6 @@ exports.getBookings = asyncCatch(async (req, res, next) => {
 });
 
 exports.getOrder = asyncCatch(async (req, res, next) => {
-  //TODO: Make endpoint an aggregation with fields for name, email, event name, number of tickets, and order total
   if (!req.params.id)
     return next(new AppError('Please specify an order ID', 400));
 
