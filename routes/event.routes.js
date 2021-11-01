@@ -20,11 +20,7 @@ router.get('/:id', authController.getAttachUser, eventController.getEvent);
 router.use(authController.protectRoute);
 
 router.get('/me/booked', eventController.getMyBookedEvents);
-router.get(
-  '/me/managed/',
-  eventController.queryOwnEvents,
-  eventController.getAllEvents
-);
+router.get('/me', eventController.queryOwnEvents, eventController.getAllEvents);
 
 //Create event
 router.post(
