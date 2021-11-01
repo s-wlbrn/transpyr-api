@@ -217,13 +217,6 @@ exports.getEvent = factory.getOne(
   ],
   authorizeUnpublishedEvent
 );
-// exports.getEventAdmin = factory.getOne(Event, {
-//   path: 'ticketTiers.numBookings',
-//   select: '_id',
-//   match: {
-//     active: true,
-//   },
-// });
 exports.createEvent = factory.createOne(Event);
 exports.updateEvent = factory.updateOne(Event);
 exports.deleteEvent = factory.deleteOne(Event);
