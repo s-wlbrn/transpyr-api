@@ -1,7 +1,7 @@
 const asyncCatch = require('../libs/asyncCatch');
 const AppError = require('../libs/AppError');
 const APIFeatures = require('../libs/apiFeatures');
-
+const paginate = require('../libs/paginate');
 //One document
 
 exports.createOne = (Model) =>
@@ -102,46 +102,38 @@ exports.getAll = (Model, populateOptions) =>
       .loc()
       .search();
 
+    //population
     if (populateOptions) {
       queryFeatures.query.populate(populateOptions);
     }
 
-    let documents = [];
-    let data = {};
     //pagination
+    let documents = [];
+    let total;
+    let page;
+    let pages;
     if (req.query.paginate) {
-      const pagination = JSON.parse(req.query.paginate);
-      const page = Number(pagination.page) || 1;
-      const limit = Number(pagination.limit) || 10;
+      const response = await paginate(
+        Model,
+        queryFeatures.query,
+        queryFeatures.queryString
+      );
 
-      const response = await Model.paginate(queryFeatures.query, {
-        page,
-        limit,
-        //handle projection in mongoose-paginate to avoid path collision
-        select: req.query.fields
-          ? req.query.fields.replace(/,/g, ' ')
-          : undefined,
-      });
       documents = response.docs;
-
-      const { total, pages } = response;
-      data = {
-        data: documents,
-        total,
-        page,
-        pages,
-      };
+      ({ total, page, pages } = response);
     } else {
       queryFeatures.limit();
       documents = await queryFeatures.query;
-      data = {
-        data: documents,
-      };
     }
 
     res.status(200).json({
       status: 'success',
       results: documents.length,
-      data,
+      data: {
+        documents,
+        total,
+        page,
+        pages,
+      },
     });
   });
