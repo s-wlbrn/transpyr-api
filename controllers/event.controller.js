@@ -166,22 +166,6 @@ exports.getMyBookedEvents = asyncCatch(async (req, res, next) => {
   });
 });
 
-//search events with text string, sorting by relevance
-exports.searchEvents = asyncCatch(async (req, res, next) => {
-  //handle no search string?
-
-  const searchResults = await Event.find(
-    { $text: { $search: req.query.searchString } },
-    { score: { $meta: 'textScore' } }
-  ).sort({ score: { $meta: 'textScore' } });
-
-  res.status(200).json({
-    status: 'success',
-    length: searchResults.length,
-    data: searchResults,
-  });
-});
-
 //queries for published events only
 exports.queryPublishedOnly = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
