@@ -1,18 +1,36 @@
 body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
   font-family: 'Work Sans', sans-serif;
   padding: 1rem 2rem;
 }
 
 h1 {
   font-weight: bolder;
+  margin-top: 0.5rem;
 }
 
-.layout-wrapper {
+main,
+nav {
+  overflow: auto;
+}
+
+.NavWrapper {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
 }
 
-.main-section header {
+.LayoutWrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.MainSection__Header {
   display: flex;
   align-items: center;
   margin: 1rem 0;
@@ -22,12 +40,60 @@ h1 {
   color: white;
 }
 
-.main-section section {
+.MainSection__SubSection {
+  padding: 0.5rem 1rem;
+}
+
+.MainSection__SubSection > :not(.MainSection__SubHeader) {
   padding-left: 1rem;
 }
 
+.MainSection__Endpoint {
+  display: flex;
+  justify-content: space-between;
+  width: fit-content;
+  height: 3rem;
+}
+
+[class^='MainSection__HttpMethod'] {
+  display: flex;
+  padding: 0 0.5rem;
+  height: 100%;
+  width: 4rem;
+  background-color: #303030;
+  justify-content: center;
+  align-items: center;
+  font-weight: bolder;
+}
+
+.MainSection__HttpMethod--get {
+  color: greenyellow;
+}
+
+.MainSection__HttpMethod--post {
+  color: white;
+}
+
+.MainSection__HttpMethod--put,
+.MainSection__HttpMethod--patch {
+  color: yellow;
+}
+
+.MainSection__HttpMethod--delete {
+  color: rgb(255, 61, 61);
+}
+
+.MainSection__URL {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  flex: 1 1 auto;
+  background-color: lightgray;
+  font-size: 1.25em;
+}
+
 @media screen and (min-width: 768px) {
-  .layout-wrapper {
+  .LayoutWrapper {
     flex-direction: row;
   }
 

@@ -23,129 +23,480 @@
       <p>Stephen Welbourn, 2021</p>
     </header>
     <hr />
-    <div class="layout-wrapper">
+    <div class="LayoutWrapper">
       <nav>
-        <h2>Navigation</h2>
-        <h3>Overview</h3>
-        <h3>Setup</h3>
-        <h3>API Root</h3>
-        <h3>Events</h3>
-        <h3>Users</h3>
-        <h3>Bookings</h3>
+        <div class="NavWrapper">
+          <h2>Navigation</h2>
+          <h3>Overview</h3>
+          <h3>Setup</h3>
+          <h3>API Root</h3>
+          <h3>Events</h3>
+          <h3>Users</h3>
+          <h3>Bookings</h3>
+        </div>
       </nav>
       <main>
-        <section class="main-section">
-          <header>
+        <section class="MainSection">
+          <header class="MainSection__Header">
             <h2>Overview</h2>
           </header>
         </section>
-        <section class="main-section">
-          <header>
+        <section class="MainSection">
+          <header class="MainSection__Header">
             <h2>Setup</h2>
           </header>
         </section>
-        <section class="main-section">
-          <header>
+        <section class="MainSection">
+          <header class="MainSection__Header">
             <h2>API Root</h2>
           </header>
-          <section>
-            <h3>Streaming images from Amazon S3</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Stream image from Amazon S3</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /image/:folder/:id
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Stripe webhooks endpoint</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Stripe webhook checkout</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /webhook-checkout
+              </code>
+            </div>
+            Don't hit this endpoint directly.
           </section>
         </section>
-        <section class="main-section">
-          <header>
+
+        <section class="MainSection">
+          <header class="MainSection__Header">
             <h2>Events</h2>
           </header>
-          <section>
-            <h3>Get all events</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get all events</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /events
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get all own events</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Create an event</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /events
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get one event</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get one event</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /events/:id
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Create an event</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Publish an event</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--put">
+                PUT
+              </span>
+              <code class="MainSection__URL">
+                /events/publish-event
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Publish an event</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get all own events</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /events/me
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Cancel an event ticket type</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Cancel an event ticket type</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--delete">
+                DELETE
+              </span>
+              <code class="MainSection__URL">
+                /events/:id/ticket/:ticketId
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get all booked events</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get all booked events</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /events/me/booked
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
         </section>
-        <section class="main-section">
-          <header>
+
+        <section class="MainSection">
+          <header class="MainSection__Header">
             <h2>Users</h2>
           </header>
-          <section>
-            <h3>Sign in</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Sign in</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /users/signin
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
+            </section>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Sign up</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /users/signup
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Sign up</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Refresh token</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /users/refresh-token
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Refresh token</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Revoke token</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /users/revoke-token
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Revoke token</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Forgot password</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /users/forgot-password
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Forgot password</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Reset password</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--patch">
+                PATCH
+              </span>
+              <code class="MainSection__URL">
+                /users/reset-password/:token
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Reset password</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get public user profile</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /profile/:id
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get public user profile</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Update password</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--patch">
+                PATCH
+              </span>
+              <code class="MainSection__URL">
+                /users/update-password
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Update password</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get own user</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /users/me
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get own user</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Update own user</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--patch">
+                PATCH
+              </span>
+              <code class="MainSection__URL">
+                /users/me
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Update own user</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Deactivate own user</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--delete">
+                DELETE
+              </span>
+              <code class="MainSection__URL">
+                /users/me
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Deactivate own user</h3>
-          </section>
-          <section>
-            <h3>Admin-only actions</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Admin-only actions</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /events
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
         </section>
-        <section class="main-section">
-          <header>
+        
+        <section class="MainSection">
+          <header class="MainSection__Header">
             <h2>Bookings</h2>
           </header>
-          <section>
-            <h3>Create Stripe checkout session</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Create Stripe checkout session</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="MainSection__URL">
+                /bookings/checkout-session/:eventId
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get order bookings</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get bookings for order</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /bookings/order/:id
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get public user profile</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get own bookings</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /bookings/me
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get own bookings</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get all refund requests for event</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /bookings/refund-requests/event/:id
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get all event refund requests</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Get one refund request</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /bookings/refund-requests/:id
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
-          <section>
-            <h3>Get one refund request</h3>
-          </section>
-          <section>
-            <h3>Admin-only actions</h3>
+          <section class="MainSection__SubSection">
+            <header class="MainSection__SubHeader">
+              <h3>Admin-only actions</h3>
+            </header>
+            <div class="MainSection__Endpoint">
+              <span class="MainSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="MainSection__URL">
+                /events
+              </code>
+            </div>
+            <h4>Params</h4>
+            <h4>Response</h4>
+            <h4>Example</h4>
           </section>
       </main>
     </div>
