@@ -108,7 +108,7 @@ exports.getAll = (Model, populateOptions) =>
     }
 
     //pagination
-    let documents = [];
+    let data = [];
     let total;
     let page;
     let pages;
@@ -119,18 +119,18 @@ exports.getAll = (Model, populateOptions) =>
         queryFeatures.queryString
       );
 
-      documents = response.docs;
+      data = response.docs;
       ({ total, page, pages } = response);
     } else {
       queryFeatures.limit();
-      documents = await queryFeatures.query;
+      data = await queryFeatures.query;
     }
 
     res.status(200).json({
       status: 'success',
-      results: documents.length,
+      results: data.length,
       data: {
-        documents,
+        data,
         total,
         page,
         pages,
