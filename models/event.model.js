@@ -3,19 +3,24 @@ const mongoosePaginate = require('mongoose-paginate');
 const slugify = require('slugify');
 const marked = require('marked');
 const sanitizeHTML = require('sanitize-html');
+const {
+  uniqueTicketNames,
+  ticketCapacitiesWithinTotal,
+  noSpareTickets,
+} = require('../validators/event.validators');
 
 const ticketTiersSchema = new mongoose.Schema(
   {
     tierName: {
       type: String,
       required: true,
-      max: [50, 'Ticket name cannot exceed 50 characters.'],
+      maxLength: [50, 'Ticket name cannot exceed 50 characters.'],
       //unique
     },
     tierDescription: {
       type: String,
       required: true,
-      max: [150, 'Ticket description cannot exceed 150 characters.'],
+      maxLength: [150, 'Ticket description cannot exceed 150 characters.'],
     },
     price: {
       type: Number,
@@ -34,10 +39,10 @@ const ticketTiersSchema = new mongoose.Schema(
     limitPerCustomer: {
       type: Number,
       default: 0,
-      min: [0, 'Per-customer limit must be 1 or greater.'],
+      min: [0, 'Per-customer limit must be a positive number.'],
       validate: {
         validator: function (v) {
-          return this.capacity === 0 ? true : v <= this.capacity;
+          return this.capacity === 0 || v <= this.capacity;
         },
         message: 'Limit per customer cannot exceed ticket capacity.',
       },
@@ -49,6 +54,24 @@ const ticketTiersSchema = new mongoose.Schema(
   },
   { toObject: { virtuals: true } }
 );
+
+const locationSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: 'Point',
+    default: 'Point',
+  },
+  coordinates: {
+    type: [Number],
+    required: true,
+    validate: {
+      validator: function (v) {
+        return v.length === 2;
+      },
+      message: 'Invalid coordinates.',
+    },
+  },
+});
 
 const eventSchema = new mongoose.Schema(
   {
@@ -111,26 +134,37 @@ const eventSchema = new mongoose.Schema(
     summary: String,
     ticketTiers: {
       type: [ticketTiersSchema],
-      required: [true, 'An event must have ticket types.'],
+      required: [true, 'An event must have ticket tiers.'],
       validate: [
+        // min length of 1
         {
           validator: function (v) {
             return v.length >= 1;
           },
           message: 'At least one ticket type is required.',
         },
+        // max length of 10
         {
           validator: function (v) {
-            const ticketMap = {};
-            const duplicates = [];
-            v.forEach((ticket) => {
-              const formattedName = ticket.tierName.trim().toLowerCase();
-              if (ticketMap[formattedName]) duplicates.push(formattedName);
-              ticketMap[formattedName] = true;
-            });
-            return duplicates.length === 0;
+            return v.length <= 10;
           },
-          message: 'At least one ticket type is required.',
+          message: 'An event cannot have more than 10 ticket types.',
+        },
+        // unique ticket names
+        {
+          validator: uniqueTicketNames,
+          message: 'Ticket names must be unique.',
+        },
+        // ticket capacities cannot exceed event capacity
+        {
+          validator: ticketCapacitiesWithinTotal,
+          message: 'Ticket capacities cannot exceed the event total capacity.',
+        },
+        // no spare tickets when all capacities set
+        {
+          validator: noSpareTickets,
+          message:
+            'When all tickets have limited capacity, they must equal the event total capacity.',
         },
       ],
     },
@@ -141,6 +175,7 @@ const eventSchema = new mongoose.Schema(
     dateTimeStart: {
       type: Date,
       required: true,
+      min: [Date.now(), 'Event start date must be in the future.'],
     },
     dateTimeEnd: {
       type: Date,
@@ -161,35 +196,29 @@ const eventSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'An event must have an organizer.'],
     },
-    address: String,
-    location: {
-      type: {
-        type: String,
-        enum: 'Point',
-        default: 'Point',
-        required: true,
+    address: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          return !!v === !!this.location;
+        },
+        message: 'An event cannot have an address without a location.',
       },
-      coordinates: {
-        type: [Number],
-        required: true,
+    },
+    location: {
+      type: locationSchema,
+      validate: {
+        validator: function (v) {
+          return !!this.address === !!v;
+        },
+        message: 'An event cannot have a location without an address.',
       },
     },
     totalCapacity: {
       type: Number,
+      required: [true, 'Event total capacity is required.'],
       default: 0,
-      min: [0, 'Capacity cannot be negative'],
-      validate: {
-        validator: function (v) {
-          const ticketCapacities = this.ticketTiers.reduce(
-            (acc, ticket) => acc + ticket.capacity,
-            0
-          );
-
-          return v > 0 ? v >= ticketCapacities : true;
-        },
-        message:
-          'The total capacity cannot be less than the ticket capacities.',
-      },
+      min: [0, 'Capacity cannot be negative.'],
     },
     feePolicy: {
       type: String,
@@ -212,12 +241,6 @@ const eventSchema = new mongoose.Schema(
     published: {
       type: Boolean,
       default: false,
-      // validate: {
-      //   validator: function (v) {
-      //     if (v) return !!this.feePolicy;
-      //   },
-      //   message: 'An event cannot be published without a fee policy.',
-      // },
     },
   },
   {
@@ -281,20 +304,6 @@ eventSchema.virtual('soldOut').get(function () {
 });
 
 //MIDDLEWARE
-
-//Populate ticket bookings and total bookings counts
-// const autoPopulate = function (next) {
-//   this.populate({
-//     path: 'ticketTiers.numBookings',
-//     select: '_id',
-//     match: {
-//       active: true,
-//     },
-//   });
-//   //.populate('totalBookings');
-//   next();
-// };
-// eventSchema.pre(/^find/, autoPopulate);
 
 //Create slug
 eventSchema.pre('save', function (next) {
