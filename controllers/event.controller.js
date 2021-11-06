@@ -46,6 +46,7 @@ exports.attachEventOrganizer = (req, res, next) => {
 
 exports.getAndAuthorizeEvent = asyncCatch(async (req, res, next) => {
   const doc = await Event.findById(req.params.id);
+
   if (!doc) {
     return next(new AppError('Event not found.', 404));
   }
@@ -64,8 +65,18 @@ exports.updateAndSaveEvent = asyncCatch(async (req, res, next) => {
   if (new Date(req.event.dateTimeStart) < Date.now()) {
     return next(new AppError('Past events cannot be updated.', 400));
   }
+  //handle updating canceled event
   if (req.event.canceled) {
     return next(new AppError('Canceled events cannot be updated.', 400));
+  }
+  // handle removing tickets
+  if (
+    req.body.ticketTiers &&
+    req.body.ticketTiers.length < req.event.ticketTiers.length
+  ) {
+    return next(
+      new AppError('Ticket tiers cannot be removed from this endpoint.', 400)
+    );
   }
 
   const filteredBody = filterFields(
@@ -88,6 +99,9 @@ exports.updateAndSaveEvent = asyncCatch(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
+    data: {
+      data: req.event,
+    },
   });
 });
 
