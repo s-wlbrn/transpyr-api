@@ -195,6 +195,7 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: [true, 'An event must have an organizer.'],
+      select: true,
     },
     address: {
       type: String,
@@ -241,6 +242,7 @@ const eventSchema = new mongoose.Schema(
     published: {
       type: Boolean,
       default: false,
+      select: true,
     },
   },
   {
@@ -287,7 +289,12 @@ ticketTiersSchema.virtual('ticketSoldOut').get(function () {
 });
 
 eventSchema.virtual('totalBookings').get(function () {
-  if (!this.ticketTiers || !this.ticketTiers[0].numBookings) return undefined;
+  if (
+    !this.ticketTiers ||
+    !this.ticketTiers[0].numBookings ||
+    !this.ticketTiers[0].numBookings.length
+  )
+    return undefined;
   const totalCount = this.ticketTiers.reduce(
     (acc, tier) => tier.numBookings.length + acc,
     0
