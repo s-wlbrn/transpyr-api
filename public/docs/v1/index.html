@@ -17,132 +17,810 @@
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <header>
-      <h1>transpyr-api</h1>
-      <h2>API Documentation v1</h2>
+    <header class="PageHeader">
+      <h1>transpyr-api v1</h1>
+      <h2>API Documentation</h2>
       <p>Stephen Welbourn, 2021</p>
     </header>
-    <hr />
     <div class="LayoutWrapper">
-      <nav>
-        <div class="NavWrapper">
-          <h2>Navigation</h2>
-          <h3>Overview</h3>
-          <h3>Setup</h3>
-          <h3>API Root</h3>
-          <h3>Events</h3>
-          <h3>Users</h3>
-          <h3>Bookings</h3>
+      <nav class="Nav">
+        <div class="Nav__Wrapper">
+          <h2 class="Nav__Header">Navigation</h2>
+          <ul>
+            <li>
+              <a href="#overview">
+                <h3>Overview</h3>
+              </a>
+            </li>
+            <li>
+              <a href="#setup">
+                <h3>Setup</h3>
+              </a>
+              <ul>
+                <li>
+                  <a href="#starting-the-server">
+                    <h4>Starting the server</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#config">
+                    <h4>Configuration</h4>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#api-root">
+                <h3>API Root</h3>
+              </a>
+              <ul>
+                <li>
+                  <a href="#stream-s3">
+                    <h4>Stream image from Amazon S3</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#stripe-webhook">
+                    <h4>Stripe webhook checkout</h4>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#events">
+                <h3>Events</h3>
+              </a>
+              <ul>
+                <li>
+                  <a href="#get-events">
+                    <h4>Get all events</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-event">
+                    <h4>Get one event</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#create-event">
+                    <h4>Create an event</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#upload-event-photo">
+                    <h4>Upload event photo</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#edit-event">
+                    <h4>Edit an event</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#publish-event">
+                    <h4>Publish an event</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-own-events">
+                    <h4>Get all own events</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#cancel-ticket">
+                    <h4>Cancel an event ticket type</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-booked-events">
+                    <h4>Get own booked events</h4>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li><a href="#users"><h3>Users</h3></a></li>
+            <li><a href="#bookings"><h3>Bookings</h3></a></li>
+        </ul>
         </div>
       </nav>
       <main>
-        <section class="MainSection">
+        <section class="MainSection" id="overview">
           <header class="MainSection__Header">
             <h2>Overview</h2>
           </header>
+          <section>
+            <h3>About</h3>
+            <p>The Transpyr back-end api is a Node/Express REST API that handles Transpyr's user, event, and booking operations.</p>
+            <p>The API is designed to be consumed by the front-end application, which is written in React.js.</p>
+          </section>
         </section>
-        <section class="MainSection">
+        <section class="MainSection" id="setup">
           <header class="MainSection__Header">
             <h2>Setup</h2>
           </header>
+          <section class="starting-the-server">
+            <h3>Starting the server</h3>
+            <p><code>npm start</code> starts the server.</p>
+            <p><code>npm run start-dev</code> runs the server with nodemon.</p>
+          </section>
+          <section id="config">
+            <h3>Configuration</h3>
+            <p>The following environment variables are required to run the API:</p>
+            <details>
+              <summary>
+                <code>See Environment Variables</code>
+              </summary>
+              
+              <h4>Server config</h4>
+              <ul>
+                <li>
+                  <code>NODE_ENV</code>
+                  <p>The environment to run the API in. This can be either <code>development</code> or <code>production</code>.</p>
+                </li>
+                <li>
+                  <code>PORT</code>
+                  <p>The port to run the API on.</p>
+                  <p>Default: 3000</p>
+                </li>
+                <li>
+                  <code>FRONTEND_HOST</code>
+                  <p>The hostname of the front-end application.</p>
+                  <p>Required for links contained in automated emails to work.</p>
+                  <p>Sets 'domain' of refresh token's set-cookie header.</p>
+                  <p>In production, <strong>Transpyr and transpyr-api must be on the same domain for refresh tokens to work</strong> due to cross-origin cookies being blocked by modern browsers.</p>
+                </li>
+              </ul>
+              <h4>Database config</h4>
+              <p>transpyr-api uses MongoDB Atlas to host its database.</p>
+              <ul>
+                <li>
+                  <code>DB_URL</code>
+                  <p><code>mongodb://[username:<PASSWORD>@]host1[:port1],...hostN[:portN]][/[defaultauthdb][?options]]</code></p>
+                  <p>MongoDB connection string</p>
+                  <p><code>&lt;PASSWORD&gt;</code> should be preserved. It is replaced programatically with the DB_PASS environment variable.</p>
+                </li>
+                <li>
+                  <code>DB_PASS</code>
+                  <p>MongoDB user password.</p>
+                </li>
+              </ul>
+              <h4>JWT config</h4>
+              <ul>
+                <li>
+                  <code>JWT_SECRET</code>
+                  <p>The secret used to sign JWTs.</p>
+                  <p>At least 32 character length recommended</p>
+                </li>
+                <li>
+                  <code>JWT_EXPIRES_IN</code>
+                  <p>The number of milliseconds a JWT is valid for.</p>
+                  <p>Recommended: <code>900000</code> (15 minutes)</p>
+                </li>
+              </ul>
+              <h4>DEVELOPMENT email config</h4>
+              <p>The development email service is usually something like Mailtrap.</p>
+              <ul>
+                <li>
+                  <code>EMAIL_USERNAME</code>
+                  <p>Development email host username.</p>
+                </li>
+                <li>
+                  <code>EMAIL_PASSWORD</code>
+                  <p>Development email host password.</p>
+                </li>
+                <li>
+                  <code>EMAIL_HOST</code>
+                  <p>Development email host.</p>
+                </li>
+                <li>
+                  <code>EMAIL_PORT</code>
+                  <p>Development email host port.</p>
+                </li>
+                <li>
+                  <code>EMAIL_FROM</code>
+                  <p>The email address to send emails from.</p>
+                </li>
+              </ul>
+              <h4>PRODUCTION email config</h4>
+              <p>transpyr-api uses SendGrid for emails in production.</p>
+              <ul>
+                <li>
+                  <code>SENDGRID_USERNAME</code>
+                  <p>Usually 'apikey'.</p>
+                </li>
+                <li>
+                  <code>SENDGRID_PASSWORD</code>
+                  <p>The API key or password for SendGrid.</p>
+                </li>
+              </ul>
+              <h4>Stripe config</h4>
+              <p>transpyr-api uses a development implementaton of Stripe for payments.</p>
+              <p><strong>The api was not built for use with real payments, and lacks business logic required to support real payments.</strong></p>
+              <ul>
+                <li>
+                  <code>STRIPE_SECRET_KEY</code>
+                  <p>The secret key for Stripe.</p>
+                </li>
+                <li>
+                  <code>STRIPE_WEBHOOK_SECRET</code>
+                  <p>The secret key for authorizing Stripe webhook requests.</p>
+                </li>
+              </ul>
+              <h4>AWS config</h4>
+              <p>transpyr-api needs to access an S3 bucket to store and stream user and event photos.</p>
+              <ul>
+                <li>
+                  <code>AWS_ACCESS_KEY_ID</code>
+                  <p>The AWS access key ID.</p>
+                </li>
+                <li>
+                  <code>AWS_SECRET_ACCESS_KEY</code>
+                  <p>The AWS secret access key.</p>
+                </li>
+                <li>
+                  <code>AWS_BUCKET</code>
+                  <p>The name of the S3 bucket to use.</p>
+                </li>
+              </ul>
+            </details>
+          </section>
         </section>
-        <section class="MainSection">
+        <section class="MainSection" id="api-root">
           <header class="MainSection__Header">
             <h2>API Root</h2>
           </header>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection" id="stream-s3">
+            <header class="EndpointSection__Header">
               <h3>Stream image from Amazon S3</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
-                /image/:folder/:id
+              <code class="EndpointSection__URL">
+                /image/:folder/:id.jpg
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:folder</code>
+                      <span>String</span>
+                    </div>
+                    <p>The folder in which the image is stored.</p>
+                    <p>Either <code>events</code> or <code>users</code>.</p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>The the id of the user or image whose photo you are requesting.</p>
+                    <p>Images are always stored as JPEGs. The <code>.jpeg</code> extension should always be specified.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>image/jpeg</p>
+                <p>The requested image.</p>
+              </section>
+            </details>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection" id="stripe-webhook">
+            <header class="EndpointSection__Header">
               <h3>Stripe webhook checkout</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /webhook-checkout
               </code>
             </div>
-            Don't hit this endpoint directly.
+            <p>Don't hit this endpoint directly.</p>
+            <p>Add a webhook from the Stripe dashboard to request this endpoint on the <code>checkout.session.completed</code> event.</p>
           </section>
         </section>
 
-        <section class="MainSection">
+        <section class="MainSection" id="events">
           <header class="MainSection__Header">
             <h2>Events</h2>
           </header>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection" id="get-events">
+            <header class="EndpointSection__Header">
               <h3>Get all events</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>Query Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>[field]</code>
+                      <span>String</span>
+                    </div>
+                    <div>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</div>
+                    <div>eg. <code>category=Lecture</code></div>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>sort</code>
+                      <span>String</span>
+                    </div>
+                    <div>
+                      Sorts returned events by the specified field. 
+                      Accepts two field names, space separated.
+                      If events have equal values for the first sorting field,
+                      they will be sorted by the second field. 
+                    </div>
+                    <div>
+                      Prefixing the fieldname with - will sort descending. Otherwise it sorts ascending. 
+                    </div>
+                    <div>eg. <code>sort=totalCapacity -createdAt</code></div>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>fields</code>
+                      <span>String</span>
+                    </div>
+                    <div>
+                      Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
+                      Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
+                      be combined with inclusion.
+                    </div>
+                    <div>VALID eg. <code>fields=name,dateTimeStart</code></div>
+                    <div>INVALID eg. <code>fields=name,photo,-ticketTiers</code></div>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>loc</code>
+                      <span>JSON String</span>
+                    </div>
+                    <div>
+                      Returns events within a specified radius around a specified coordinate pair.
+                    </div>
+                    <div>
+                      "center": A comma-separated pair of coordinates, expressed "longitude,latitude".
+                    </div>
+                    <div>
+                      "radius": The radius around the center in miles.
+                    </div>
+                    <div>eg. <code>loc={"center":"-86.8893739,36.0853771","radius":"50"}</code></div>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>search</code>
+                      <span>String</span>
+                    </div>
+                    <div>
+                      A case-insensitive search string that returns events matching the event name or description. 
+                    </div>
+                    <div>eg. <code>search=yoga</code></div>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>paginate</code>
+                      <span>JSON String</span>
+                    </div>
+                    <div>
+                      Returns results in separate pages according to the specified limit.
+                      In addition to the events, it supplies the total number of events, current page, and total number of pages.
+                    </div>
+                    <div>
+                      "page": The requested page number.
+                    </div>
+                    <div>
+                      "limit": The number of results per page.
+                    </div>
+                    <div>eg. <code>paginate={"page":"1","limit":"8"}</code></div>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>results</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: Event[]. The returned event documents.
+                      </li>
+                      <li>
+                        <code>total</code>: Number. (Optional) The total number of documents when using pagination.
+                      </li>
+                      <li>
+                        <code>page</code>: Number. (Optional) The current page when using pagination.
+                      </li>
+                      <li>
+                        <code>pages</code>: Number. (Optional) The total number of pages when using pagination.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
-              <h3>Create an event</h3>
-            </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
-                POST
-              </span>
-              <code class="MainSection__URL">
-                /events
-              </code>
-            </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
-          </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection" id="get-event">
+            <header class="EndpointSection__Header">
               <h3>Get one event</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events/:id
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <div>
+                      The id of the requested event.
+                    </div>
+                  </li>
+                </ul>
+                <h4>Query Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>fields</code>
+                      <span>String</span>
+                    </div>
+                    <div>
+                      Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
+                      Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
+                      be combined with inclusion.
+                    </div>
+                    <div>VALID eg. <code>fields=name,dateTimeStart</code></div>
+                    <div>INVALID eg. <code>fields=name,photo,-ticketTiers</code></div>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
-              <h3>Publish an event</h3>
+          <section class="EndpointSection" id="create-event">
+            <header class="EndpointSection__Header">
+              <h3>Create an event</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--put">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
+                POST
+              </span>
+              <code class="EndpointSection__URL">
+                /events
+              </code>
+            </div>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>name</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>The name of the event.</div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>Must be at least 8 characters.</li>
+                      <li>Cannot exceed 75 characters.</li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>type</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>
+                      The event type (format).
+                    </div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>Allowed values: 'Lecture', 'Class', 'Performance', 'Social',
+                      'Workshop', 'Conference', 'Convention', 'Expo', 'Game', 'Rally',
+                      'Screening', 'Tour'</li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>category</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>The event category.</div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>Allowed values: 'Business', 'Food',
+                      'Health & Lifestyle', 'Music', 'Vehicle', 'Charity',
+                      'Community', 'Fashion', 'Film', 'Home', 'Hobbies',
+                      'Performing & Visual Arts', 'Politics', 'Spirituality',
+                      'School', 'Science & Technology', 'Holiday',
+                      'Sports & Fitness', 'Travel', 'Outdoor & Recreation',
+                      'Other'</li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>description</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>The description of the event.</div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>The description is parsed from Markdown to HTML on event
+                      creation. New lines are represented with the <code>\n</code> newline character.</li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>dateTimeStart</code>
+                      <span>Date</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>The start date and time of the event.</div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>The start date must be in the future.</code> newline character.</li>
+                    </ul>
+                  </li>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>dateTimeEnd</code>
+                      <span>Date</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>The end date and time of the event.</div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>The end date must be after the start date.</code> newline character.</li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>ticketTiers</code>
+                      <span>TicketTier[]</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>The ticket tiers for the event.</div>
+                    <ul>
+                      <li>At least one ticket is required.</li>
+                    </ul>
+                    <ul>
+                      <li>An event can have a maximum of 10 ticket types.</li>
+                    </ul>
+                    <ul>
+                      <li>Total ticket capacities cannot exceed the event total capacity. When all tickets have a limited capacity (greater than 0), they must equal the event total capacity.</li>
+                    </ul>
+                    <details class="EndpointSection__SubTypeDetails">
+                      <summary>TicketTier</summary>
+                      <ul>
+                        <li>
+                          <code>tierName</code>: String. Required. The name of the ticket tier. Must be unique. Cannot exceed 50 characters.
+                        </li>
+                        <li>
+                          <code>tierDescription</code>: String. Required. The description of the ticket tier. Cannot exceed 150 characters.
+                        </li>
+                        <li>
+                          <code>price</code>: Number. Required. The price of the ticket tier. Must be greater than or equal to 0.
+                        </li>
+                        <li>
+                          <code>online</code>: Boolean. Requied. Specifies if the ticket is for virtual attendance.
+                        </li>
+                        <li>
+                          <code>capacity</code>: Number. The number of tickets available. Must be greater than or equal to 0. A value of 0 indicates that there is no limit.
+                        </li>
+                        <li>
+                          <code>limitPerCustomer</code>: Number. The number of tickets available per order. Must be greater than or equal to 0. A value of 0 indicates that there is no limit. Must be less than or equal to the capacity.
+                        </li>
+                      </ul>
+
+                    </details>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>location</code>
+                      <span>Location</span>
+                    </div>
+                    <div>The location of the event.</div>
+                    <ul>
+                      <li>Required when the address field is specified.</li>
+                    </ul>
+                    <details class="EndpointSection__SubTypeDetails">
+                      <summary>Location</summary>
+                      <ul>
+                        <li>
+                          <code>coordinates</code>: [number, number]. Required. Coordinates are expressed as <strong>longitude, latitude</strong>.
+                        </li>
+                      </ul>
+                    </details>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>address</code>
+                      <span>String</span>
+                    </div>
+                    <div>The address of the event.</div>
+                    <ul>
+                      <li>Required when the location field is specified.</li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>totalCapacity</code>
+                      <span>Number</span>
+                    </div>
+                    <div>The total number of available event tickets.</div>
+                    <ul>
+                      <li>Required.</li>
+                      <li>Must be greater than or equal to 0. A value of 0 indicates there is no capacity limit.</li>
+                      <li>Must be eq</li>
+                    </ul>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>
+          <section class="EndpointSection" id="upload-event-photo">
+            <header class="EndpointSection__Header">
+              <h3>Upload event photo</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--patch">
+                PATCH
+              </span>
+              <code class="EndpointSection__URL">
+                /events/:id
+              </code>
+            </div>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: multipart/form-data</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>photo</code>
+                      <span>Image</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <div>A valid image file to be uploaded.</div>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>
+          <section class="EndpointSection" id="edit-event">
+            <header class="EndpointSection__Header">
+              <h3>Edit an event</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--put">
                 PUT
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
+                /events/:id
+              </code>
+            </div>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li>Same as <a href="#create-event">create event.</a></li>
+                  <li>Ticket tiers cannot be removed. See <a href="#cancel-ticket">"Cancel an event ticket tier"</a>.</li>
+                  <li>The entire event object does not need to be specified in the request body.</li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>
+          <section class="EndpointSection" id="publish-event">
+            <header class="EndpointSection__Header">
+              <h3>Publish an event</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--put">
+                PUT
+              </span>
+              <code class="EndpointSection__URL">
                 /events/publish-event
               </code>
             </div>
@@ -150,15 +828,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection" id="get-own-events">
+            <header class="EndpointSection__Header">
               <h3>Get all own events</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events/me
               </code>
             </div>
@@ -166,15 +844,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection" id="cancel-ticket">
+            <header class="EndpointSection__Header">
               <h3>Cancel an event ticket type</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--delete">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--delete">
                 DELETE
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events/:id/ticket/:ticketId
               </code>
             </div>
@@ -182,15 +860,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
-              <h3>Get all booked events</h3>
+          <section class="EndpointSection" id="get-booked-events">
+            <header class="EndpointSection__Header">
+              <h3>Get own booked events</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events/me/booked
               </code>
             </div>
@@ -204,15 +882,15 @@
           <header class="MainSection__Header">
             <h2>Users</h2>
           </header>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Sign in</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/signin
               </code>
             </div>
@@ -220,15 +898,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
             </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Sign up</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/signup
               </code>
             </div>
@@ -236,15 +914,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Refresh token</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/refresh-token
               </code>
             </div>
@@ -252,15 +930,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Revoke token</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/revoke-token
               </code>
             </div>
@@ -268,15 +946,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Forgot password</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/forgot-password
               </code>
             </div>
@@ -284,15 +962,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Reset password</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--patch">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--patch">
                 PATCH
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/reset-password/:token
               </code>
             </div>
@@ -300,15 +978,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Get public user profile</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /profile/:id
               </code>
             </div>
@@ -316,15 +994,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Update password</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--patch">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--patch">
                 PATCH
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/update-password
               </code>
             </div>
@@ -332,15 +1010,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Get own user</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/me
               </code>
             </div>
@@ -348,15 +1026,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Update own user</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--patch">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--patch">
                 PATCH
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/me
               </code>
             </div>
@@ -364,15 +1042,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Deactivate own user</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--delete">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--delete">
                 DELETE
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /users/me
               </code>
             </div>
@@ -380,15 +1058,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Admin-only actions</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events
               </code>
             </div>
@@ -402,15 +1080,15 @@
           <header class="MainSection__Header">
             <h2>Bookings</h2>
           </header>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Create Stripe checkout session</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--post">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--post">
                 POST
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /bookings/checkout-session/:eventId
               </code>
             </div>
@@ -418,15 +1096,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Get bookings for order</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /bookings/order/:id
               </code>
             </div>
@@ -434,15 +1112,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Get own bookings</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /bookings/me
               </code>
             </div>
@@ -450,15 +1128,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Get all refund requests for event</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /bookings/refund-requests/event/:id
               </code>
             </div>
@@ -466,15 +1144,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Get one refund request</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /bookings/refund-requests/:id
               </code>
             </div>
@@ -482,15 +1160,15 @@
             <h4>Response</h4>
             <h4>Example</h4>
           </section>
-          <section class="MainSection__SubSection">
-            <header class="MainSection__SubHeader">
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
               <h3>Admin-only actions</h3>
             </header>
-            <div class="MainSection__Endpoint">
-              <span class="MainSection__HttpMethod--get">
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
-              <code class="MainSection__URL">
+              <code class="EndpointSection__URL">
                 /events
               </code>
             </div>

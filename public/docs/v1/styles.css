@@ -1,15 +1,20 @@
+/* CSS Variables */
+:root {
+  --color-main: #43a047;
+  --color-dark: #00701a;
+  --color-light: #76d275;
+  --color-lighter: hsl(119, 51%, 85%);
+  --color-selected: hsl(203, 51%, 85%);
+  --color-warning: #940e00;
+  --color-warning-light: #cb5855;
+}
+
 body {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
   font-family: 'Work Sans', sans-serif;
-  padding: 1rem 2rem;
-}
-
-h1 {
-  font-weight: bolder;
-  margin-top: 0.5rem;
 }
 
 main,
@@ -17,10 +22,44 @@ nav {
   overflow: auto;
 }
 
-.NavWrapper {
+code {
+  font-size: 1rem;
+}
+
+h1 {
+  font-weight: bolder;
+  margin-top: 0.5rem;
+}
+
+.PageHeader {
+  padding: 1rem;
+  border-bottom: 1px solid black;
+}
+
+.Nav a {
+  text-decoration: none;
+}
+
+.Nav a:hover {
+  text-decoration: underline;
+}
+
+.Nav h3 {
+  color: black;
+}
+
+.Nav h4 {
+  color: var(--color-dark);
+}
+
+.Nav ul {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.Nav__Wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   height: 100vh;
 }
 
@@ -36,26 +75,30 @@ nav {
   margin: 1rem 0;
   padding-left: 1rem;
   height: 6rem;
-  background-color: darkgreen;
+  background-color: var(--color-dark);
   color: white;
 }
 
-.MainSection__SubSection {
+.MainSection > :not(.MainSection__Header) {
   padding: 0.5rem 1rem;
 }
 
-.MainSection__SubSection > :not(.MainSection__SubHeader) {
+.MainSection > :last-child {
+  padding-bottom: 1.5rem;
+}
+
+.EndpointSection > :not(.EndpointSection__Header) {
   padding-left: 1rem;
 }
 
-.MainSection__Endpoint {
+.EndpointSection__Endpoint {
   display: flex;
   justify-content: space-between;
   width: fit-content;
   height: 3rem;
 }
 
-[class^='MainSection__HttpMethod'] {
+[class^='EndpointSection__HttpMethod'] {
   display: flex;
   padding: 0 0.5rem;
   height: 100%;
@@ -66,30 +109,78 @@ nav {
   font-weight: bolder;
 }
 
-.MainSection__HttpMethod--get {
+.EndpointSection__HttpMethod--get {
   color: greenyellow;
 }
 
-.MainSection__HttpMethod--post {
+.EndpointSection__HttpMethod--post {
   color: white;
 }
 
-.MainSection__HttpMethod--put,
-.MainSection__HttpMethod--patch {
+.EndpointSection__HttpMethod--put,
+.EndpointSection__HttpMethod--patch {
   color: yellow;
 }
 
-.MainSection__HttpMethod--delete {
+.EndpointSection__HttpMethod--delete {
   color: rgb(255, 61, 61);
 }
 
-.MainSection__URL {
+.EndpointSection__URL {
   display: flex;
   align-items: center;
   padding: 1rem;
   flex: 1 1 auto;
   background-color: lightgray;
-  font-size: 1.25em;
+}
+
+.EndpointSection__Details {
+  margin: 1rem 0;
+}
+
+.EndpointSection__OptionsList {
+  padding-left: 1rem;
+  list-style: none;
+}
+
+.EndpointSection__Option {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+.EndpointSection__OptionName {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  font-weight: bolder;
+}
+
+.EndpointSection__Required {
+  flex: 1 1 100%;
+  margin-bottom: 0;
+  color: red;
+  font-weight: bolder;
+}
+
+.EndpointSection__SubTypeDetails ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.EndpointSection__SubTypeDetails summary {
+  font-weight: bolder;
+}
+
+.EndpointSection__Responses ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 @media screen and (min-width: 768px) {
@@ -97,9 +188,9 @@ nav {
     flex-direction: row;
   }
 
-  nav {
+  .Nav {
     flex: 1 1 15%;
-    padding-right: 2rem;
+    padding: 0 1rem;
     border-right: 1px solid black;
   }
 
