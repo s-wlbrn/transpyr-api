@@ -108,7 +108,7 @@
                 </li>
                 <li>
                   <a href="#cancel-ticket">
-                    <h4>Cancel an event ticket type</h4>
+                    <h4>Cancel an event ticket tier</h4>
                   </a>
                 </li>
                 <li>
@@ -354,37 +354,37 @@
                       <code>[field]</code>
                       <span>String</span>
                     </div>
-                    <div>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</div>
-                    <div>eg. <code>category=Lecture</code></div>
+                    <p>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</p>
+                    <p>eg. <code>category=Lecture</code></p>
                   </li>
                   <li class="EndpointSection__Option">
                     <div class="EndpointSection__OptionName">
                       <code>sort</code>
                       <span>String</span>
                     </div>
-                    <div>
+                    <p>
                       Sorts returned events by the specified field. 
                       Accepts two field names, space separated.
                       If events have equal values for the first sorting field,
                       they will be sorted by the second field. 
-                    </div>
-                    <div>
+                    </p>
+                    <p>
                       Prefixing the fieldname with - will sort descending. Otherwise it sorts ascending. 
-                    </div>
-                    <div>eg. <code>sort=totalCapacity -createdAt</code></div>
+                    </p>
+                    <p>eg. <code>sort=totalCapacity -createdAt</code></p>
                   </li>
                   <li class="EndpointSection__Option">
                     <div class="EndpointSection__OptionName">
                       <code>fields</code>
                       <span>String</span>
                     </div>
-                    <div>
+                    <p>
                       Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
                       Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
                       be combined with inclusion.
-                    </div>
-                    <div>VALID eg. <code>fields=name,dateTimeStart</code></div>
-                    <div>INVALID eg. <code>fields=name,photo,-ticketTiers</code></div>
+                    </p>
+                    <p>VALID eg. <code>fields=name,dateTimeStart</code></p>
+                    <p>INVALID eg. <code>fields=name,photo,-ticketTiers</code></p>
                   </li>
                   <li class="EndpointSection__Option">
                     <div class="EndpointSection__OptionName">
@@ -394,40 +394,40 @@
                     <div>
                       Returns events within a specified radius around a specified coordinate pair.
                     </div>
-                    <div>
+                    <p>
                       "center": A comma-separated pair of coordinates, expressed "longitude,latitude".
-                    </div>
-                    <div>
+                    </p>
+                    <p>
                       "radius": The radius around the center in miles.
-                    </div>
-                    <div>eg. <code>loc={"center":"-86.8893739,36.0853771","radius":"50"}</code></div>
+                    </p>
+                    <p>eg. <code>loc={"center":"-86.8893739,36.0853771","radius":"50"}</code></p>
                   </li>
                   <li class="EndpointSection__Option">
                     <div class="EndpointSection__OptionName">
                       <code>search</code>
                       <span>String</span>
                     </div>
-                    <div>
+                    <p>
                       A case-insensitive search string that returns events matching the event name or description. 
-                    </div>
-                    <div>eg. <code>search=yoga</code></div>
+                    </p>
+                    <p>eg. <code>search=yoga</code></p>
                   </li>
                   <li class="EndpointSection__Option">
                     <div class="EndpointSection__OptionName">
                       <code>paginate</code>
                       <span>JSON String</span>
                     </div>
-                    <div>
+                    <p>
                       Returns results in separate pages according to the specified limit.
                       In addition to the events, it supplies the total number of events, current page, and total number of pages.
-                    </div>
-                    <div>
+                    </p>
+                    <p>
                       "page": The requested page number.
-                    </div>
-                    <div>
+                    </p>
+                    <p>
                       "limit": The number of results per page.
-                    </div>
-                    <div>eg. <code>paginate={"page":"1","limit":"8"}</code></div>
+                    </p>
+                    <p>eg. <code>paginate={"page":"1","limit":"8"}</code></p>
                   </li>
                 </ul>
               </section>
@@ -484,9 +484,9 @@
                       <code>:id</code>
                       <span>String</span>
                     </div>
-                    <div>
+                    <p>
                       The id of the requested event.
-                    </div>
+                    </p>
                   </li>
                 </ul>
                 <h4>Query Params</h4>
@@ -496,13 +496,13 @@
                       <code>fields</code>
                       <span>String</span>
                     </div>
-                    <div>
+                    <p>
                       Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
                       Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
                       be combined with inclusion.
-                    </div>
-                    <div>VALID eg. <code>fields=name,dateTimeStart</code></div>
-                    <div>INVALID eg. <code>fields=name,photo,-ticketTiers</code></div>
+                    </p>
+                    <p>VALID eg. <code>fields=name,dateTimeStart</code></p>
+                    <p>INVALID eg. <code>fields=name,photo,-ticketTiers</code></p>
                   </li>
                 </ul>
               </section>
@@ -547,7 +547,7 @@
                       <span>String</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>The name of the event.</div>
+                    <p>The name of the event.</p>
                     <ul>
                       <li>Required.</li>
                       <li>Must be at least 8 characters.</li>
@@ -560,9 +560,9 @@
                       <span>String</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>
+                    <p>
                       The event type (format).
-                    </div>
+                    </p>
                     <ul>
                       <li>Required.</li>
                       <li>Allowed values: 'Lecture', 'Class', 'Performance', 'Social',
@@ -576,7 +576,7 @@
                       <span>String</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>The event category.</div>
+                    <p>The event category.</p>
                     <ul>
                       <li>Required.</li>
                       <li>Allowed values: 'Business', 'Food',
@@ -594,7 +594,7 @@
                       <span>String</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>The description of the event.</div>
+                    <p>The description of the event.</p>
                     <ul>
                       <li>Required.</li>
                       <li>The description is parsed from Markdown to HTML on event
@@ -607,7 +607,7 @@
                       <span>Date</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>The start date and time of the event.</div>
+                    <p>The start date and time of the event.</p>
                     <ul>
                       <li>Required.</li>
                       <li>The start date must be in the future.</code> newline character.</li>
@@ -620,7 +620,7 @@
                       <span>Date</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>The end date and time of the event.</div>
+                    <p>The end date and time of the event.</p>
                     <ul>
                       <li>Required.</li>
                       <li>The end date must be after the start date.</code> newline character.</li>
@@ -632,12 +632,12 @@
                       <span>TicketTier[]</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>The ticket tiers for the event.</div>
+                    <p>The ticket tiers for the event.</p>
                     <ul>
                       <li>At least one ticket is required.</li>
                     </ul>
                     <ul>
-                      <li>An event can have a maximum of 10 ticket types.</li>
+                      <li>An event can have a maximum of 10 ticket tiers.</li>
                     </ul>
                     <ul>
                       <li>Total ticket capacities cannot exceed the event total capacity. When all tickets have a limited capacity (greater than 0), they must equal the event total capacity.</li>
@@ -672,7 +672,7 @@
                       <code>location</code>
                       <span>Location</span>
                     </div>
-                    <div>The location of the event.</div>
+                    <p>The location of the event.</p>
                     <ul>
                       <li>Required when the address field is specified.</li>
                     </ul>
@@ -690,7 +690,7 @@
                       <code>address</code>
                       <span>String</span>
                     </div>
-                    <div>The address of the event.</div>
+                    <p>The address of the event.</p>
                     <ul>
                       <li>Required when the location field is specified.</li>
                     </ul>
@@ -700,7 +700,7 @@
                       <code>totalCapacity</code>
                       <span>Number</span>
                     </div>
-                    <div>The total number of available event tickets.</div>
+                    <p>The total number of available event tickets.</p>
                     <ul>
                       <li>Required.</li>
                       <li>Must be greater than or equal to 0. A value of 0 indicates there is no capacity limit.</li>
@@ -741,6 +741,18 @@
             </div>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the event.
+                    </p>
+                  </li>
+                </ul>
                 <h4>Body: multipart/form-data</h4>
                 <ul class="EndpointSection__OptionsList">
                   <li class="EndpointSection__Option">
@@ -749,7 +761,7 @@
                       <span>Image</span>
                       <p class="EndpointSection__Required">Required</p>
                     </div>
-                    <div>A valid image file to be uploaded.</div>
+                    <p>A valid image file to be uploaded.</p>
                   </li>
                 </ul>
               </section>
@@ -786,8 +798,20 @@
             </div>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
-                <h4>Body: application/json</h4>
+                <h4>URL Params</h4>
                 <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the event to edit.
+                    </p>
+                  </li>
+                </ul>
+                <h4>Body: application/json</h4>
+                <ul>
                   <li>Same as <a href="#create-event">create event.</a></li>
                   <li>Ticket tiers cannot be removed. See <a href="#cancel-ticket">"Cancel an event ticket tier"</a>.</li>
                   <li>The entire event object does not need to be specified in the request body.</li>
@@ -817,16 +841,67 @@
               <h3>Publish an event</h3>
             </header>
             <div class="EndpointSection__Endpoint">
-              <span class="EndpointSection__HttpMethod--put">
-                PUT
+              <span class="EndpointSection__HttpMethod--patch">
+                PATCH
               </span>
               <code class="EndpointSection__URL">
-                /events/publish-event
+                /events/:id/publish
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p>Specify a fee policy and optional refund policy to publish an event</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the event to publish.
+                    </p>
+                  </li>
+                </ul>
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>feePolicy</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p>Allowed values: 'passFee', 'absorbFee'.</p>
+                    <p>absorbFee takes Transpyr's service fee from the organizer's earnings.</p>
+                    <p>passFee adds Transpyr's service fee to the ticket price.</p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>refundPolicy</code>
+                      <span>String</span>
+                    </div>
+                    <p>Optional refund policy.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection" id="get-own-events">
             <header class="EndpointSection__Header">
@@ -840,13 +915,49 @@
                 /events/me
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Query params</h4>
+                <ul>
+                  <li>Same as <a href="#get-events">Get All Events</a>.</li>
+                  <li>It is not possible to query for other organizer's events from this route.</li>
+                  <li>Unlike <a href="#get-events">Get All Events</a>, this route responds with the user's unpublished events.</li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>results</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: Event[]. The returned event documents.
+                      </li>
+                      <li>
+                        <code>total</code>: Number. (Optional) The total number of documents when using pagination.
+                      </li>
+                      <li>
+                        <code>page</code>: Number. (Optional) The current page when using pagination.
+                      </li>
+                      <li>
+                        <code>pages</code>: Number. (Optional) The total number of pages when using pagination.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection" id="cancel-ticket">
             <header class="EndpointSection__Header">
-              <h3>Cancel an event ticket type</h3>
+              <h3>Cancel an event ticket tiers</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--delete">
@@ -856,9 +967,35 @@
                 /events/:id/ticket/:ticketId
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the event.
+                    </p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:ticket</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the ticket to cancel.
+                    </p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>204: No Content</p>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection" id="get-booked-events">
             <header class="EndpointSection__Header">
@@ -872,9 +1009,64 @@
                 /events/me/booked
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p>Returns events the user has booked, with the total number of bookings for each.</p>
+            <p>It is not possible to query for other organizer's events from this route.</p>
+                  <p>Unlike <a href="#get-events">Get All Events</a>, this route responds with the user's unpublished events.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Query params</h4>
+                <ul>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>[field]</code>
+                      <span>String</span>
+                    </div>
+                    <p>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</p>
+                    <p>eg. <code>category=Lecture</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>fields</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
+                      Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
+                      be combined with inclusion.
+                    </p>
+                    <p>VALID eg. <code>fields=name,dateTimeStart</code></p>
+                    <p>INVALID eg. <code>fields=name,photo,-ticketTiers</code></p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>results</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-event">Event</a>[]. The returned event documents.
+                        <ul>
+                          <li>
+                            <code>total</code>: Number. Number of user bookings for event.
+                          </li>
+                        </ul>
+                      </li>
+
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
         </section>
 
