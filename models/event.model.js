@@ -289,12 +289,7 @@ ticketTiersSchema.virtual('ticketSoldOut').get(function () {
 });
 
 eventSchema.virtual('totalBookings').get(function () {
-  if (
-    !this.ticketTiers ||
-    !this.ticketTiers[0].numBookings ||
-    !this.ticketTiers[0].numBookings.length
-  )
-    return undefined;
+  if (!this.ticketTiers) return undefined;
   const totalCount = this.ticketTiers.reduce(
     (acc, tier) => tier.numBookings.length + acc,
     0

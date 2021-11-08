@@ -163,8 +163,10 @@ exports.getMyBookedEvents = asyncCatch(async (req, res, next) => {
   const queryFeatures = new APIFeatures(
     Event.find({ _id: { $in: eventIds } }),
     req.query
-  ).filter();
-  queryFeatures.query.select('name dateTimeStart photo');
+  )
+    .filter()
+    .limit();
+  //queryFeatures.query.select('name dateTimeStart photo');
   const events = await queryFeatures.query.lean();
 
   const eventsWithTotals = events.map((event) => {
@@ -173,7 +175,7 @@ exports.getMyBookedEvents = asyncCatch(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    length: eventsWithTotals.length,
+    results: eventsWithTotals.length,
     data: {
       data: eventsWithTotals,
     },
