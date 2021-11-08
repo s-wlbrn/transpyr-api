@@ -9,7 +9,7 @@ const router = express.Router();
 //Public routes
 router.post('/signup', authController.signup);
 router.post('/signin', authController.signin);
-router.post('/refresh-token', authController.refreshToken);
+router.get('/refresh-token', authController.refreshToken);
 router.post('/forgot-password', authController.forgotPassword);
 router.patch('/reset-password/:token', authController.resetPassword);
 router.get('/profile/:id', userController.getUserProfile);
