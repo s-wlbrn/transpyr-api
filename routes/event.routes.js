@@ -53,8 +53,8 @@ router.delete(
   eventController.cancelTicket
 );
 
-router.put(
-  '/:id/publish-event',
+router.patch(
+  '/:id/publish',
   eventController.getAndAuthorizeEvent,
   eventController.publishEvent,
   eventController.updateEvent
