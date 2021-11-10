@@ -18,7 +18,7 @@ router.get('/profile/:id', userController.getUserProfile);
 router.use(authController.protectRoute);
 
 //revoke refresh token
-router.post('/revoke-token', authController.revokeToken);
+router.delete('/refresh-token', authController.revokeToken);
 
 //current user routes
 router.patch(
