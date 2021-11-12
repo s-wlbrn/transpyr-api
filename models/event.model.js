@@ -271,9 +271,9 @@ ticketTiersSchema.set('toJSON', {
 eventSchema.plugin(mongoosePaginate);
 
 //VIRTUAL
-eventSchema.virtual('ticketTiers.numBookings', {
+ticketTiersSchema.virtual('numBookings', {
   ref: 'Booking',
-  localField: 'ticketTiers._id',
+  localField: '_id',
   foreignField: 'ticket',
   justOne: false,
   //mongoose bug- virtual populate count not working for subdocument
@@ -281,7 +281,9 @@ eventSchema.virtual('ticketTiers.numBookings', {
 });
 
 ticketTiersSchema.virtual('ticketSoldOut').get(function () {
-  if (!this.numBookings) return undefined;
+  //only calculate when numBookings and ticket capacity are present
+  if (!this.numBookings || this.capacity === undefined) return undefined;
+
   const soldOut = !this.capacity
     ? false
     : !(this.numBookings.length < this.capacity);
@@ -289,7 +291,9 @@ ticketTiersSchema.virtual('ticketSoldOut').get(function () {
 });
 
 eventSchema.virtual('totalBookings').get(function () {
-  if (!this.ticketTiers) return undefined;
+  // only calculate when ticketTiers and numBookings present
+  if (!this.ticketTiers || !this.ticketTiers[0].numBookings) return undefined;
+
   const totalCount = this.ticketTiers.reduce(
     (acc, tier) => tier.numBookings.length + acc,
     0
@@ -298,7 +302,10 @@ eventSchema.virtual('totalBookings').get(function () {
 });
 
 eventSchema.virtual('soldOut').get(function () {
-  if (this.totalBookings === undefined) return undefined;
+  //only calculate when totalBookings and totalCapacity are present
+  if (this.totalBookings === undefined || this.totalCapacity === undefined)
+    return undefined;
+
   const soldOut = !this.totalCapacity
     ? false
     : !(this.totalBookings < this.totalCapacity);
@@ -306,6 +313,26 @@ eventSchema.virtual('soldOut').get(function () {
 });
 
 //MIDDLEWARE
+
+//populate ticketTiers.numBookings when ticketTiers projected
+eventSchema.pre(['find', 'findOne'], function (next) {
+  const projection = this.projection();
+  if (
+    this.selectedInclusively() &&
+    !(projection.ticketTiers || projection['ticketTiers.numBookings'])
+  ) {
+    return next();
+  }
+
+  this.populate({
+    path: 'ticketTiers.numBookings',
+    select: '_id',
+    match: {
+      active: true,
+    },
+  });
+  next();
+});
 
 //Create slug
 eventSchema.pre('save', function (next) {
@@ -333,6 +360,16 @@ eventSchema.pre('save', function (next) {
   this.convertedDescription = sanitizeHTML(marked(fixedNewlines));
   next();
 });
+
+// mongoose virtuals on ticketTiers subdocument are always sent, even when ticketTiers is not selected
+// removes ticketTiers junk fields if not needed
+// eventSchema.post('find', function (result) {
+//   result.forEach((doc) => {
+//     if (doc.ticketTiers[0].id === null) {
+//       doc.ticketTiers = undefined;
+//     }
+//   });
+// });
 
 const Event = mongoose.model('Event', eventSchema);
 
