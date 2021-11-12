@@ -23,8 +23,8 @@ exports.getOne = (Model, options = {}) =>
       req.query
     ).limit();
 
-    if (options.populateOptions) {
-      queryFeatures.query.populate(options.populateOptions);
+    if (options.populate) {
+      queryFeatures.query.populate(options.populate);
     }
     const doc = await queryFeatures.query;
 

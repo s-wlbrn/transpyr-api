@@ -198,6 +198,7 @@ exports.queryOwnEvents = (req, res, next) => {
 
 exports.getAllEvents = factory.getAll(Event);
 exports.getEvent = factory.getOne(Event, {
+  populate: { path: 'organizer', select: 'id name photo tagline' },
   authorize: authorizeUnpublishedEvent,
 });
 exports.createEvent = factory.createOne(Event);
