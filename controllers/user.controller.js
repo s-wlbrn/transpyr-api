@@ -80,7 +80,6 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
 
   //paginate options
   const pagination = req.query.paginate ? JSON.parse(req.query.paginate) : {};
-  console.log(pagination);
   const limit = pagination.limit ? Number(pagination.limit) : 4;
   const skip = pagination.page ? limit * (pagination.page - 1) : 0;
 
