@@ -150,7 +150,7 @@ exports.forgotPassword = async (req, res, next) => {
   //get user from email posted
   const user = await User.findOne({ email: req.body.email });
 
-  if (!user) {
+  if (!user || !user.active) {
     return next(
       new AppError('This email address does not belong to a user.', 404)
     );
