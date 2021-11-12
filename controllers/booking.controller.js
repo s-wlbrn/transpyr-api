@@ -564,4 +564,4 @@ exports.getOrder = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.getBooking = factory.getOne(Booking, 'event');
+exports.getBooking = factory.getOne(Booking, { populate: 'event' });

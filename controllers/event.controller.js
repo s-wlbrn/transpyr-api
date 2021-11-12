@@ -196,27 +196,10 @@ exports.queryOwnEvents = (req, res, next) => {
   next();
 };
 
-exports.getAllEvents = factory.getAll(Event, {
-  path: 'ticketTiers.numBookings',
-  select: '_id',
-  match: {
-    active: true,
-  },
+exports.getAllEvents = factory.getAll(Event);
+exports.getEvent = factory.getOne(Event, {
+  authorize: authorizeUnpublishedEvent,
 });
-exports.getEvent = factory.getOne(
-  Event,
-  [
-    {
-      path: 'ticketTiers.numBookings',
-      select: '_id',
-      match: {
-        active: true,
-      },
-    },
-    { path: 'organizer', select: 'id name photo tagline' },
-  ],
-  authorizeUnpublishedEvent
-);
 exports.createEvent = factory.createOne(Event);
 exports.updateEvent = factory.updateOne(Event);
 exports.deleteEvent = factory.deleteOne(Event);

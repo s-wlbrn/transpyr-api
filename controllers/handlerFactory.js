@@ -16,15 +16,15 @@ exports.createOne = (Model) =>
     });
   });
 
-exports.getOne = (Model, populateOptions, authorize) =>
+exports.getOne = (Model, options = {}) =>
   asyncCatch(async (req, res, next) => {
     const queryFeatures = new APIFeatures(
       Model.findById(req.params.id),
       req.query
     ).limit();
 
-    if (populateOptions) {
-      queryFeatures.query.populate(populateOptions);
+    if (options.populateOptions) {
+      queryFeatures.query.populate(options.populateOptions);
     }
     const doc = await queryFeatures.query;
 
@@ -34,8 +34,8 @@ exports.getOne = (Model, populateOptions, authorize) =>
     }
 
     //call authorization function if specified
-    if (typeof authorize === 'function') {
-      if (!authorize(req, doc)) {
+    if (typeof options.authorize === 'function') {
+      if (!options.authorize(req, doc)) {
         const resourceName = Model.collection.name;
         return next(
           new AppError(
