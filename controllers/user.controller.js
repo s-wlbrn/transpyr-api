@@ -79,10 +79,10 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
     'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events';
 
   //paginate options
-  const limit = req.query.paginate ? Number(req.query.paginate.limit || 4) : 4;
-  const skip = req.query.paginate
-    ? limit * ((req.query.paginate.page || 0) - 1)
-    : 0;
+  const pagination = req.query.paginate ? JSON.parse(req.query.paginate) : {};
+  console.log(pagination);
+  const limit = pagination.limit ? Number(pagination.limit) : 4;
+  const skip = pagination.page ? limit * (pagination.page - 1) : 0;
 
   //ensure selected fields are subset of default, or use default
   req.query.fields = req.query.fields
@@ -100,6 +100,7 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   if (fieldsArray.includes('favorites')) {
     queryFeatures.query.populate({
       path: 'favorites',
+      match: { published: true },
       options: {
         skip,
         limit,
@@ -110,6 +111,7 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   if (fieldsArray.includes('events')) {
     queryFeatures.query.populate({
       path: 'events',
+      match: { published: true },
       options: {
         skip,
         limit,
