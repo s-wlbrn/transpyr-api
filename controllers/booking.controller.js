@@ -245,19 +245,12 @@ exports.getEventRefundRequests = asyncCatch(async (req, res, next) => {
 exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   const { tickets } = req.body;
   //get event to book from params
-  req.bookedEvent = await Event.findById(req.params.eventId).populate({
-    path: 'ticketTiers.numBookings',
-    select: '_id',
-    match: {
-      active: true,
-    },
-  });
+  req.bookedEvent = await Event.findById(req.params.eventId);
   const { bookedEvent } = req;
 
   //handle no name
   if (!req.body.name)
     return next(new AppError('A name for the order is required.', 400));
-
   //handle no event
   if (!bookedEvent)
     return next(new AppError('The specified event does not exist.', 404));
@@ -274,25 +267,23 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
     (acc, cur) => acc + tickets[cur],
     0
   );
-
   //handle requested tickets going over capacity
   if (
     bookedEvent.totalCapacity > 0 &&
     selectedTicketsCount + bookedEvent.totalBookings > bookedEvent.totalCapacity
-  )
+  ) {
     return next(
       new AppError(
         'There are not enough remaining tickets to complete the order.',
         400
       )
     );
-
+  }
   //map info for all selected tickets
   const selectedTicketTiersMap = ticketKeys.reduce((acc, ticketId) => {
     const ticket = bookedEvent.ticketTiers.find((el) => el.id === ticketId);
-    return { ...acc, [ticketId]: { ...ticket._doc } };
+    return { ...acc, [ticketId]: ticket };
   }, {});
-
   //validate each ticket selection and add price to order total
   let orderTotal = 0;
   ticketKeys.forEach((ticketId) => {

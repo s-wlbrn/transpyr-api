@@ -218,10 +218,8 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
   if (!password) {
     return next(new AppError('Please enter your current password.', 400));
   }
-
   //get user
   const user = await User.findById(req.user._id).select('+password');
-
   //check password in body
   if (!(await user.isCorrectPassword(password, user.password))) {
     return next(new AppError('The password entered is incorrect.', 400));
