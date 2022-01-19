@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const mongoosePaginate = require('mongoose-paginate');
 
 const userSchema = new mongoose.Schema(
   {
@@ -89,6 +90,9 @@ userSchema.set('toJSON', {
     delete ret.password;
   },
 });
+
+//Plugins
+userSchema.plugin(mongoosePaginate);
 
 //VIRTUAL FIELDS
 userSchema.virtual('events', {
