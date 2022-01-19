@@ -427,7 +427,7 @@
                     <p>
                       "limit": The number of results per page.
                     </p>
-                    <p>eg. <code>paginate={"page":"1","limit":"8"}</code></p>
+                    <p>eg. <code>paginate={"page":1,"limit":8}</code></p>
                   </li>
                 </ul>
               </section>
@@ -445,7 +445,7 @@
                     <code>data</code>: Object.
                     <ul>
                       <li>
-                        <code>data</code>: Event[]. The returned event documents.
+                        <code>data</code>: <a href="#resource-event">Event</a>[]. The returned event documents.
                       </li>
                       <li>
                         <code>total</code>: Number. (Optional) The total number of documents when using pagination.
@@ -517,7 +517,7 @@
                     <code>data</code>: Object.
                     <ul>
                       <li>
-                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                        <code>data</code>: <a href="#resource-event">Event</a>. The requested event document.
                       </li>
                     </ul>
                   </li>
@@ -537,6 +537,7 @@
                 /events
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
                 <h4>Body: application/json</h4>
@@ -719,7 +720,7 @@
                     <code>data</code>: Object.
                     <ul>
                       <li>
-                        <code>data</code>: <a href="#resource-event">Event</a>. The created event documents.
+                        <code>data</code>: <a href="#resource-event">Event</a>. The created event document.
                       </li>
                     </ul>
                   </li>
@@ -739,6 +740,7 @@
                 /events/:id
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
                 <h4>URL Params</h4>
@@ -796,6 +798,7 @@
                 /events/:id
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
                 <h4>URL Params</h4>
@@ -848,6 +851,7 @@
                 /events/:id/publish
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <p>Specify a fee policy and optional refund policy to publish an event</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
@@ -915,6 +919,7 @@
                 /events/me
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
                 <h4>Query params</h4>
@@ -967,6 +972,8 @@
                 /events/:id/ticket/:ticketId
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <p>Cancel an event ticket.</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
                 <h4>URL Params</h4>
@@ -1009,9 +1016,10 @@
                 /events/me/booked
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <p>Returns events the user has booked, with the total number of bookings for each.</p>
             <p>It is not possible to query for other organizer's events from this route.</p>
-                  <p>Unlike <a href="#get-events">Get All Events</a>, this route responds with the user's unpublished events.</p>
+            <p>Unlike <a href="#get-events">Get All Events</a>, this route responds with the user's unpublished events.</p>
             <details class="EndpointSection__Details">
               <section class="EndpointSection__Options">
                 <h4>Query params</h4>
@@ -1021,21 +1029,21 @@
                       <code>[field]</code>
                       <span>String</span>
                     </div>
-                    <p>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</p>
-                    <p>eg. <code>category=Lecture</code></p>
+                    <p class="EndpointSection__OptionDescription">The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</p>
+                    <p class="EndpointSection__OptionDescription">eg. <code>category=Lecture</code></p>
                   </li>
                   <li class="EndpointSection__Option">
                     <div class="EndpointSection__OptionName">
                       <code>fields</code>
                       <span>String</span>
                     </div>
-                    <p>
+                    <p class="EndpointSection__OptionDescription">
                       Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
                       Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
                       be combined with inclusion.
                     </p>
-                    <p>VALID eg. <code>fields=name,dateTimeStart</code></p>
-                    <p>INVALID eg. <code>fields=name,photo,-ticketTiers</code></p>
+                    <p class="EndpointSection__OptionDescription">VALID eg. <code>fields=name,dateTimeStart</code></p>
+                    <p class="EndpointSection__OptionDescription">INVALID eg. <code>fields=name,photo,-ticketTiers</code></p>
                   </li>
                 </ul>
               </section>
@@ -1060,14 +1068,32 @@
                           </li>
                         </ul>
                       </li>
-
-                      </li>
                     </ul>
                   </li>
                 </ul>
               </section>
             </details>
           </section>
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
+              <h3>Admin-only actions</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="EndpointSection__URL">
+                /events
+              </code>
+            </div>
+            <p>Users with the admin role can use normal routes with extra functionality.</p>
+            <ul>
+              <li><a href="#get-events">Get Events</a> returns all events, published and unpublished.</li>
+              <li>Admins can edit and publish any event.</li>
+              <li>Admins can cancel and delete events and their tickets.</li>
+            </ul>
+          </section>
+        </section>
         </section>
 
         <section class="MainSection">
@@ -1086,10 +1112,55 @@
                 /users/signin
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
-            </section>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>email</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Valid email address of the user.</p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>password</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Password of the user.
+                    </p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>token</code>: String. JSON web token, which is sent in the authorization header to access protected routes.
+                  </li>
+                  <li>
+                    <code>expiresIn</code>: Number. The amount of time in milliseconds for which the JWT is valid.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>user</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
               <h3>Sign up</h3>
@@ -1102,41 +1173,167 @@
                 /users/signup
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>name</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Name for the user.</p>
+                    <ul>
+                      <li>
+                        Must be under 42 characters.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>email</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Email address for the account.</p>
+                    <ul>
+                      <li>
+                        Must be a valid email address.
+                      </li>
+                      <li>
+                        Must not already be in use.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>password</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Password for the account.
+                    </p>
+                    <ul>
+                      <li>
+                        Must be at least 8 characters long.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>passwordConfirm</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Confirmation of the password.
+                    </p>
+                    <ul>
+                      <li>
+                        Must match the <code>password</code> field.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>token</code>: String. JSON web token, which is sent as a Bearer token in the authorization header to access protected routes.
+                  </li>
+                  <li>
+                    <code>expiresIn</code>: Number. The amount of time in milliseconds for which the JWT is valid.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>user</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
               <h3>Refresh token</h3>
             </header>
             <div class="EndpointSection__Endpoint">
-              <span class="EndpointSection__HttpMethod--post">
-                POST
+              <span class="EndpointSection__HttpMethod--get">
+                GET
               </span>
               <code class="EndpointSection__URL">
                 /users/refresh-token
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p>If a valid refresh token is sent in a secure, HTTPOnly cookie, the refresh token and JWT are replaced and returned.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>token</code>: String. JSON web token, which is sent as a Bearer token in the authorization header to access protected routes.
+                  </li>
+                  <li>
+                    <code>expiresIn</code>: Number. The amount of time in milliseconds for which the JWT is valid.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>user</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
               <h3>Revoke token</h3>
             </header>
             <div class="EndpointSection__Endpoint">
-              <span class="EndpointSection__HttpMethod--post">
-                POST
+              <span class="EndpointSection__HttpMethod--delete">
+                DELETE
               </span>
               <code class="EndpointSection__URL">
-                /users/revoke-token
+                /users/refresh-token
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <p>Revokes a refresh token sent in either the body of the request or a secure HTTPOnly cookie, rendering it invalid for refreshing a JWT.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>token</code>
+                      <span>String</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Optional. A valid refresh token (which was issued to the current user) to revoke.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>204 No Content</p>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1150,9 +1347,39 @@
                 /users/forgot-password
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p>Begins the password reset process by sending an email containing a link with a password reset token to a valid user email address.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>email</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Email of the user.</p>
+                    <ul>
+                      <li>
+                        Must be a valid email address corresponding to an active user.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>message</code>: String. Value is 'Email sent!' upon success.
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1166,9 +1393,66 @@
                 /users/reset-password/:token
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:token</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Valid password reset token received in the "forgot password" email.</p>
+                  </li>
+                </ul>
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>password</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Password for the account.
+                    </p>
+                    <ul>
+                      <li>
+                        Must be at least 8 characters long.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>passwordConfirm</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Confirmation of the password.
+                    </p>
+                    <ul>
+                      <li>
+                        Must match the <code>password</code> field.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>message</code>: String. Value is 'Password changed successfully!' upon success.
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1182,9 +1466,70 @@
                 /profile/:id
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">User ID.</p>
+                  </li>
+                </ul>
+                <h4>Query Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>fields</code>
+                      <span>String</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Specifies a comma-separated (with no spaces) list of fields to include in the returned user profile.
+                      Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
+                      be combined with inclusion.
+                    </p>
+                    <p class="EndpointSection__OptionDescription">VALID eg. <code>fields=name,events</code></p>
+                    <p class="EndpointSection__OptionDescription">INVALID eg. <code>fields=name,photo,-favorites</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>paginate</code>
+                      <span>JSON String</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Returns events in the 'favorites' and 'events' fields in separate pages according to the specified limit.
+                    </p>
+                    <p class="EndpointSection__OptionDescription">
+                      "page": The requested page number.
+                    </p>
+                    <p class="EndpointSection__OptionDescription">
+                      "limit": The number of results per page.
+                    </p>
+                    <p class="EndpointSection__OptionDescription">eg. <code>paginate={"page":1,"limit":8}</code></p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>user</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1198,9 +1543,59 @@
                 /users/update-password
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <p>Logged in users can use this endpoint to change their passoword.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>password</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Current password for the account.
+                    </p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>newPassword</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      New password for the account.
+                    </p>
+                    <ul>
+                      <li>
+                        Must be at least 8 characters long.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>newPasswordConfirm</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      Confirmation of the new password.
+                    </p>
+                    <ul>
+                      <li>
+                        Must match the <code>newPassword</code> field.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>204 No Content</p>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1214,9 +1609,27 @@
                 /users/me
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <p>Gets logged in user's document.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1230,9 +1643,121 @@
                 /users/me
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <p>Used to edit the currently logged-in user. Contains either FormData for changing the user's photo or JSON for editing the user's info.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Upload user photo: multipart/form-data</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>photo</code>
+                      <span>image</span>
+                    </div>
+                    <p>A valid image file to be uploaded.</p>
+                  </li>
+                </ul>
+                <h4>Edit user: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>name</code>
+                      <span>string</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">User name.</p>
+                    <ul>
+                      <li>
+                        Maximum of 42 characters.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>email</code>
+                      <span>string</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">User email.</p>
+                    <ul>
+                      <li>
+                        Must be a valid email address.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>privateFavorites</code>
+                      <span>boolean</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Whether or not the user's favorites should be private.</p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>favorites</code>
+                      <span>string[]</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Array of user's favorite events.</p>
+                    <ul>
+                      <li>
+                        Must contain IDs of the events.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>bio</code>
+                      <span>string</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">A longer description of the user.</p>
+                    <ul>
+                      <li>
+                        Maximum of 1000 characters.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>interests</code>
+                      <span>string</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Some info about the user's interests and goals.</p>
+                    <ul>
+                      <li>
+                        Maximum of 500 characters.
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>tagline</code>
+                      <span>string</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">A short phrase to be displayed at the top of a user's profile, as well as in the "organizer" section of their events.</p>
+                    <ul>
+                      <li>
+                        Maximum of 150 characters.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>user</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1246,28 +1771,281 @@
                 /users/me
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <p>Deactivate the currently logged-in user.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>204: No Content</p>
+              </section>
+            </details>
           </section>
+          <h2>Admin-only actions</h3>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
-              <h3>Admin-only actions</h3>
+              <h3>Get all users</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
               <code class="EndpointSection__URL">
-                /events
+                /users
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Admin authorization required</p>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>Query Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>[field]</code>
+                      <span>String</span>
+                    </div>
+                    <p>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</p>
+                    <p>eg. <code>category=Lecture</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>sort</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      Sorts returned events by the specified field. 
+                      Accepts two field names, space separated.
+                      If events have equal values for the first sorting field,
+                      they will be sorted by the second field. 
+                    </p>
+                    <p>
+                      Prefixing the fieldname with - will sort descending. Otherwise it sorts ascending. 
+                    </p>
+                    <p>eg. <code>sort=totalCapacity -createdAt</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>fields</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
+                      Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
+                      be combined with inclusion.
+                    </p>
+                    <p>VALID eg. <code>fields=name,dateTimeStart</code></p>
+                    <p>INVALID eg. <code>fields=name,photo,-ticketTiers</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>loc</code>
+                      <span>JSON String</span>
+                    </div>
+                    <div>
+                      Returns events within a specified radius around a specified coordinate pair.
+                    </div>
+                    <p>
+                      "center": A comma-separated pair of coordinates, expressed "longitude,latitude".
+                    </p>
+                    <p>
+                      "radius": The radius around the center in miles.
+                    </p>
+                    <p>eg. <code>loc={"center":"-86.8893739,36.0853771","radius":"50"}</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>search</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      A case-insensitive search string that returns events matching the event name or description. 
+                    </p>
+                    <p>eg. <code>search=yoga</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>paginate</code>
+                      <span>JSON String</span>
+                    </div>
+                    <p>
+                      Returns results in separate pages according to the specified limit.
+                      In addition to the events, it supplies the total number of events, current page, and total number of pages.
+                    </p>
+                    <p>
+                      "page": The requested page number.
+                    </p>
+                    <p>
+                      "limit": The number of results per page.
+                    </p>
+                    <p>eg. <code>paginate={"page":1,"limit":8}</code></p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>results</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-user">User</a>[]. The returned user documents.
+                      </li>
+                      <li>
+                        <code>total</code>: Number. (Optional) The total number of documents when using pagination.
+                      </li>
+                      <li>
+                        <code>page</code>: Number. (Optional) The current page when using pagination.
+                      </li>
+                      <li>
+                        <code>pages</code>: Number. (Optional) The total number of pages when using pagination.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
-        </section>
-        
+          <section class="EndpointSection" id="get-event">
+            <header class="EndpointSection__Header">
+              <h3>Get one user</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="EndpointSection__URL">
+                /users/:id
+              </code>
+            </div>
+            <p class="EndpointSection__ProtectedEndpoint">Admin authorization required</p>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the requested user.
+                    </p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-user">User</a>. The requested user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>  
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
+              <h3>Update user</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--patch">
+                PATCH
+              </span>
+              <code class="EndpointSection__URL">
+                /users/:id
+              </code>
+            </div>
+            <p class="EndpointSection__ProtectedEndpoint">Admin authorization required</p>
+            <p>Used to edit any user's document. Contains either FormData for changing the user's photo or JSON for editing the other fields.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>Upload user photo: multipart/form-data</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>photo</code>
+                      <span>image</span>
+                    </div>
+                    <p>A valid image file to be uploaded.</p>
+                  </li>
+                </ul>
+                <h4>Edit user: application/json</h4>
+                <ul>
+                  <li>Possible fields match the <a href="#resource-user">user model.</a></li>
+                  <li>Attempting to include a password field will return an error.</li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>user</code>: <a href="#resource-user">User</a>. The returned user document.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>
+          <section class="EndpointSection">
+            <header class="EndpointSection__Header">
+              <h3>Delete user</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--delete">
+                DELETE
+              </span>
+              <code class="EndpointSection__URL">
+                /users/:id
+              </code>
+            </div>
+            <p class="EndpointSection__ProtectedEndpoint">Admin authorization required</p>
+            <p>Deletes a user's document permanently.</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">A valid user ID.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>204 No Content</p>
+              </section>
+            </details>
+          </section>
+
+        </section>      
         <section class="MainSection">
           <header class="MainSection__Header">
             <h2>Bookings</h2>
@@ -1284,9 +2062,72 @@
                 /bookings/checkout-session/:eventId
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization optional</p>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:eventId</code>
+                      <span>String</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Valid ID of event to be booked.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Options">
+                <h4>Body: application/json</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>name</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Name for the bookings.</p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>email</code>
+                      <span>String</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">Email address for the bookings.</p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>tickets</code>
+                      <span>TicketSelections</span>
+                      <p class="EndpointSection__Required">Required</p>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">
+                      An object containing selected ticket ID keys with the selected quantity as a value.
+                    </p>
+                    <details class="EndpointSection__SubTypeDetails">
+                      <summary>TicketSelections</summary>
+                      <ul>
+                        <li>
+                          <code>[ticketId]</code>: Number. Required. The selected quantity of the ticket.
+                        </li>
+                      </ul>
+                    </details>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>id</code>: String. The Stripe checkout session ID.
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1300,9 +2141,33 @@
                 /bookings/order/:id
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <section class="EndpointSection__Options">
+                <h4>URL params</h4>
+                <ul>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p class="EndpointSection__OptionDescription">The order ID.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>length</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: <a href="#resource-event">Event</a>[]. The returned booking documents.
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
@@ -1316,13 +2181,66 @@
                 /bookings/me
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>Query Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>[field]</code>
+                      <span>String</span>
+                    </div>
+                    <p>The key should correspond to a field in the bookings resource. The value is the value of that field you want to match in the results.</p>
+                    <p>eg. <code>event=60266cadc727a6c634a445de</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>sort</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      Sorts returned events by the specified field. 
+                      Accepts two field names, space separated.
+                      If events have equal values for the first sorting field,
+                      they will be sorted by the second field. 
+                    </p>
+                    <p>
+                      Prefixing the fieldname with - will sort descending. Otherwise it sorts ascending. 
+                    </p>
+                    <p>eg. <code>sort=-createdAt</code></p>
+                  </ul>
+                </li>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>length</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: <a href="#resource-booking">Booking</a>[]. The returned booking documents.
+                    <ul>
+                      <li>
+                        <code>event</code>: <a href="#resource-event">Event</a>. The populated event data.
+                      </li>
+                      <li>
+                        <code>ticketData</code>: <a href="#resource-ticket">TicketTier</a>. The document for the booking's corresponding ticket.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">
-              <h3>Get all refund requests for event</h3>
+              <h3>Get all bookings with refund requests for event</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--get">
@@ -1332,9 +2250,36 @@
                 /bookings/refund-requests/event/:id
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>The ID of the event.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>length</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: <a href="#resource-booking">Booking</a>[]. The returned booking document.
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
           <section class="EndpointSection">
             <header class="EndpointSection__Header">

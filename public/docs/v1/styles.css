@@ -134,6 +134,11 @@ h1 {
   background-color: lightgray;
 }
 
+.EndpointSection__ProtectedEndpoint {
+  font-weight: bold;
+  color: var(--color-warning);
+}
+
 .EndpointSection__Details {
   margin: 1rem 0;
 }
@@ -152,10 +157,6 @@ h1 {
   border-bottom: 1px solid black;
 }
 
-.EndpointSection__Option p {
-  margin: 0;
-}
-
 .EndpointSection__OptionName {
   display: flex;
   justify-content: space-between;
@@ -163,10 +164,14 @@ h1 {
   font-weight: bolder;
 }
 
+.EndpointSection__OptionDescription {
+  margin: 0;
+}
+
 .EndpointSection__Required {
   flex: 1 1 100%;
-  margin-bottom: 0;
-  color: red;
+  margin: 0.5rem 0;
+  color: var(--color-warning);
   font-weight: bolder;
 }
 
