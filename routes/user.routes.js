@@ -31,6 +31,7 @@ router
   .route('/me')
   .get(userController.getMe, userController.getUser)
   .patch(
+    userController.getMe,
     userController.uploadUserPhoto,
     userController.processUserPhoto,
     userController.updateMe
@@ -49,7 +50,8 @@ router
   .route('/:id')
   .get(userController.getUser)
   .patch(
-    //userController.uploadUserPhoto,
+    userController.uploadUserPhoto,
+    userController.processUserPhoto,
     userController.updateUser
   )
   .delete(userController.deleteUser);

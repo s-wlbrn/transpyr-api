@@ -15,15 +15,16 @@ exports.processUserPhoto = asyncCatch(async (req, res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `${req.user.id}.jpeg`;
-
+  //resize and format image
   const data = await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toBuffer();
-
+  //upload to s3
   await s3Upload(data, 'users', req.file.filename);
-
+  //attach filename to req.body
+  req.body.photo = req.file.filename;
   next();
 });
 
@@ -38,7 +39,7 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
-        'Password cannot be updated from this route. Please use /updateMyPassword instead.',
+        'Password cannot be updated from this route. Please use /updatePassword instead.',
         400
       )
     );
@@ -50,18 +51,23 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
     'name',
     'email',
     'privateFavorites',
+    'photo',
     'favorites',
     'bio',
     'interests',
     'tagline'
   );
-  if (req.file) filteredBody.photo = req.file.filename;
+  if (!req.file) delete filteredBody.photo;
 
   //Update User
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-    new: true,
-    runValidators: true,
-  });
+  const updatedUser = await User.findByIdAndUpdate(
+    req.params.id,
+    filteredBody,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
   //Send updated user in response
   res.status(200).json({
