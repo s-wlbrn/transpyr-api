@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "start-dev": "nodemon server.js",
-    "debug": "ndb server.js"
+    "debug": "ndb server.js",
+    "test": "jest --runInBand"
   },
   "author": "Stephen Welbourn",
   "license": "ISC",
@@ -15,11 +16,15 @@
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^25.7.0",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.2.0",
     "eslint-plugin-react": "^7.21.5",
-    "prettier": "^2.2.1"
+    "jest": "^27.4.7",
+    "mongodb-memory-server": "^8.2.0",
+    "prettier": "^2.2.1",
+    "supertest": "^6.2.1"
   },
   "engines": {
     "node": "^14"
