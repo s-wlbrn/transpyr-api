@@ -5,7 +5,7 @@ const db = require('../test/db');
 const Booking = require('../models/booking.model');
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
-const Email = require('../libs/email');
+const Email = require('../services/email.service');
 const {
   createAdminAndLogin,
   createUserAndLogin,

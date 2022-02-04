@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const asyncCatch = require('../libs/asyncCatch');
 const AppError = require('../libs/AppError');
-const Email = require('../libs/email');
+const Email = require('../services/email.service');
 const User = require('../models/user.model');
 const RefreshToken = require('../models/refresh-token.model');
 
