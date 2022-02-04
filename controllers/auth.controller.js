@@ -95,7 +95,7 @@ const createSendToken = async (
     //Only send cookie over HTTPS if in production environment
     secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
     httpOnly: true,
-    domain: process.env.NODE_ENV === 'production' && 'transpyr.app',
+    domain: process.env.NODE_ENV !== 'development' && 'transpyr.app',
   };
 
   //configure cookie
