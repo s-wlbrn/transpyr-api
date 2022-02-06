@@ -1,11 +1,11 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
-const asyncCatch = require('../libs/asyncCatch');
-const AppError = require('../libs/AppError');
 const Email = require('../services/email.service');
 const User = require('../models/user.model');
 const RefreshToken = require('../models/refresh-token.model');
+const AppError = require('../libs/AppError');
+const asyncCatch = require('../libs/asyncCatch');
 
 const extractToken = (headers) => {
   let token;

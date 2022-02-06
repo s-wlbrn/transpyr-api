@@ -888,6 +888,7 @@ describe('bookings', () => {
       //assert bookings to be created
       //query for bookings
       const bookings = await Booking.find();
+
       //assert bookings to be created
       expect(bookings.length).toBe(6);
       //assert logged in user bookings
