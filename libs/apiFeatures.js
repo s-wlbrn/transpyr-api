@@ -73,7 +73,8 @@ class APIFeatures {
 
   loc() {
     if (this.queryString.loc) {
-      const location = JSON.parse(this.queryString.loc);
+      const { loc } = this.queryString;
+      const location = typeof loc === 'object' ? loc : JSON.parse(loc);
 
       const radius = location.radius / 3963.2;
       const center = location.center.split(',');
