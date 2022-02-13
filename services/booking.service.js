@@ -20,10 +20,10 @@ module.exports.sendRefundEmailOrganizer = async (req, requestId) => {
 module.exports.sendRefundResolvedEmails = async (
   status,
   eventName,
-  organizerName,
+  organizer,
   attendee
 ) => {
-  const emailOrganizer = new Email(organizerName, null, eventName);
+  const emailOrganizer = new Email(organizer, null, eventName);
   const emailAttendee = new Email(
     { name: attendee.name, email: attendee.email },
     null,
@@ -227,26 +227,28 @@ module.exports.getSelectedTicketData = (selectedTickets, eventTickets) => {
     0
   );
 
-  const selectedTicketTiersMap = ticketKeys.reduce((acc, ticketId) => {
+  const selectedTicketsMap = ticketKeys.reduce((acc, ticketId) => {
     const ticket = eventTickets.find((el) => el.id === ticketId);
     return { ...acc, [ticketId]: ticket };
   }, {});
 
   const orderTotal = ticketKeys.reduce((acc, ticketId) => {
-    const ticket = selectedTicketTiersMap[ticketId];
+    const ticket = selectedTicketsMap[ticketId];
+
     return acc + ticket.price * selectedTickets[ticketId];
-  });
+  }, 0);
 
   return {
     selectedTicketsCount,
-    selectedTicketTiersMap,
+    selectedTicketsMap,
     orderTotal,
   };
 };
 
 module.exports.createFreeCheckoutSession = (
-  req,
+  orderId,
   eventId,
+  customer,
   selectedTickets,
   selectedTicketsMap
 ) => {
@@ -254,12 +256,12 @@ module.exports.createFreeCheckoutSession = (
   //mimic stripe session data
   const session = {
     metadata: {
-      orderId: req.orderId,
-      user: req.user ? req.user._id : undefined,
-      name: req.body.name,
+      orderId: orderId,
+      user: customer.id,
+      name: customer.name,
     },
     client_reference_id: eventId,
-    customer_email: req.customerEmail,
+    customer_email: customer.email,
     line_items: {
       data: ticketKeys.flatMap((ticketId) => {
         const individualBookings = [];
@@ -339,7 +341,7 @@ exports.constructWebhookEvent = async (body, signature) => {
   return event;
 };
 
-exports.retreiveStripeCheckoutSession = async (event) => {
+exports.retrieveStripeCheckoutSession = async (event) => {
   const session = await stripe.checkout.sessions.retrieve(
     event.data.object.id,
     {
