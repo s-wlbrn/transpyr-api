@@ -1,5 +1,7 @@
 module.exports = async (Model, query, queryString) => {
-  const pagination = JSON.parse(queryString.paginate);
+  const { paginate } = queryString;
+  const pagination =
+    typeof paginate === 'object' ? paginate : JSON.parse(paginate);
   const page = Number(pagination.page) || 1;
   const limit = Number(pagination.limit) || 10;
 
