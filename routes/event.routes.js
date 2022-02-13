@@ -29,6 +29,7 @@ router.get(
 //Create event
 router.post(
   '/',
+  eventController.filterEventBody,
   eventController.attachEventOrganizer,
   eventController.createEvent
 );
@@ -36,7 +37,11 @@ router.post(
 router
   .route('/:id')
   //Update event
-  .put(eventController.getAndAuthorizeEvent, eventController.updateAndSaveEvent)
+  .put(
+    eventController.filterEventBody,
+    eventController.getAndAuthorizeEvent,
+    eventController.updateAndSaveEvent
+  )
   //Upload event photo
   .patch(
     eventController.getAndAuthorizeEvent,

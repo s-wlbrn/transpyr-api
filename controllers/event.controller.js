@@ -1,18 +1,20 @@
 const sharp = require('sharp');
 const Event = require('../models/event.model');
+const eventService = require('../services/event.service');
 const Booking = require('../models/booking.model');
 const factory = require('./handlerFactory');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const filterFields = require('../libs/filterFields');
 const APIFeatures = require('../libs/apiFeatures');
-const { cancelAllBookings } = require('./booking.controller');
+const { cancelAllBookings } = require('../services/booking.service');
 const multerUpload = require('../libs/multerUpload');
 const s3Upload = require('../libs/s3Upload');
 
 //passed to getOne handler to handle unpublished events
 const authorizeUnpublishedEvent = (req, event) => {
   if (event.published) return true;
+
   if (
     !req.user ||
     (req.user.role !== 'admin' && req.user.id !== event.organizer.id)
@@ -54,9 +56,28 @@ exports.getAndAuthorizeEvent = asyncCatch(async (req, res, next) => {
     req.user.role !== 'admin' &&
     String(doc.organizer) !== String(req.user._id)
   ) {
-    return next(new AppError('Only the organizer may edit this event.', 403));
+    return next(new AppError('Only the organizer may access this event.', 403));
   }
   req.event = doc;
+  next();
+});
+
+exports.filterEventBody = asyncCatch(async (req, res, next) => {
+  const filteredBody = filterFields(
+    req.body,
+    'name',
+    'type',
+    'category',
+    'description',
+    'summary',
+    'ticketTiers',
+    'dateTimeStart',
+    'dateTimeEnd',
+    'address',
+    'location',
+    'totalCapacity'
+  );
+  req.body = filteredBody;
   next();
 });
 
@@ -79,22 +100,7 @@ exports.updateAndSaveEvent = asyncCatch(async (req, res, next) => {
     );
   }
 
-  const filteredBody = filterFields(
-    req.body,
-    'name',
-    'type',
-    'category',
-    'description',
-    'summary',
-    'ticketTiers',
-    'dateTimeStart',
-    'dateTimeEnd',
-    'address',
-    'location',
-    'totalCapacity'
-  );
-
-  Object.assign(req.event, filteredBody);
+  Object.assign(req.event, req.body);
   await req.event.save();
 
   res.status(200).json({
@@ -197,7 +203,7 @@ exports.queryOwnEvents = (req, res, next) => {
 };
 
 exports.getAllEvents = factory.getAll(Event);
-exports.getEvent = factory.getOne(Event, {
+exports.getEvent = eventService.getEventById({
   populate: { path: 'organizer', select: 'id name photo tagline' },
   authorize: authorizeUnpublishedEvent,
 });
