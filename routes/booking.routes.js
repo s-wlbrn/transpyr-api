@@ -29,10 +29,7 @@ router
 
 router.use(authController.authorizeRole('admin'));
 
-router
-  .route('/:id')
-  .get(bookingController.getBooking)
-  .post(bookingController.createBookings);
+router.route('/:id').get(bookingController.getBooking);
 router.get('/', bookingController.getBookings);
 
 module.exports = router;
