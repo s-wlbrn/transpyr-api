@@ -1,7 +1,10 @@
 node_modules/
 public/img
+.vscode/
 .eslintrc.json
 .prettierrc
 config.env
+coverage/
+test/jest.setup.js
 
 uploadPhoto.js
