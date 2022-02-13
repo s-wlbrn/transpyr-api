@@ -2,8 +2,8 @@ const asyncCatch = require('../libs/asyncCatch');
 const AppError = require('../libs/AppError');
 const APIFeatures = require('../libs/apiFeatures');
 const paginate = require('../libs/paginate');
-//One document
 
+//One document
 exports.createOne = (Model) =>
   asyncCatch(async (req, res, next) => {
     const doc = await Model.create(req.body);
@@ -111,6 +111,7 @@ exports.getAll = (Model, populateOptions) =>
     let page;
     let pages;
     if (req.query.paginate) {
+      //let mongoose-paginate handle limit query param
       const response = await paginate(
         Model,
         queryFeatures.query,
@@ -120,6 +121,7 @@ exports.getAll = (Model, populateOptions) =>
       data = response.docs;
       ({ total, page, pages } = response);
     } else {
+      //handle limit query param
       queryFeatures.limit();
       data = await queryFeatures.query;
     }
