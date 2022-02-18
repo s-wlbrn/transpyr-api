@@ -112,6 +112,13 @@ exports.updateAndSaveEvent = asyncCatch(async (req, res, next) => {
 });
 
 exports.cancelEvent = asyncCatch(async (req, res, next) => {
+  if (req.event.canceled) {
+    return next(new AppError('Event is already canceled.', 400));
+  }
+  if (new Date(req.event.dateTimeStart) < Date.now()) {
+    return next(new AppError('Past events cannot be canceled.', 400));
+  }
+
   req.event.canceled = true;
   //refund logic would go here
   await req.event.save();
