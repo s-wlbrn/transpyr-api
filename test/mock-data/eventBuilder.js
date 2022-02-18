@@ -89,6 +89,9 @@ const eventBuilder = build('Event', {
     published: perBuild(() => {
       return true;
     }),
+    canceled: perBuild(() => {
+      return false;
+    }),
   },
   postBuild: (event) => {
     //calculate dateTimeEnd based on random number of hours from start
