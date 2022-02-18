@@ -26,6 +26,17 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleMulterError = (err) => {
+  switch (err.code) {
+    case 'LIMIT_FILE_SIZE':
+      return new AppError('File size is too large.', 400);
+    case 'LIMIT_UNEXPECTED_FILE':
+      return new AppError('Invalid form data. File in unexpected field.', 400);
+    default:
+      return new AppError(`Invalid form data. ${err.message}`, 400);
+  }
+};
+
 //Error data for production and development environments
 const sendErrorDev = (err, res) => {
   console.log('ERROR!', err);
@@ -68,6 +79,9 @@ module.exports = (err, req, res, next) => {
   //Handle JWT errors
   if (error.name === 'JsonWebTokenError') error = handleErrorJWT();
   if (error.name === 'TokenExpiredError') error = handleExpiredJWT(err);
+
+  //Handle multer errors
+  if (error.name === 'MulterError') error = handleMulterError(err);
 
   //Handle MongoDB errors
   if (err.name === 'CastError') error = handleCastErrorDB(error);
