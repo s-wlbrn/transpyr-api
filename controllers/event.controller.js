@@ -27,7 +27,7 @@ const authorizeUnpublishedEvent = (req, event) => {
 exports.uploadEventPhoto = multerUpload.single('photo');
 
 exports.processEventPhoto = asyncCatch(async (req, res, next) => {
-  if (!req.file) return next();
+  if (!req.file) return next(new AppError('Please provide a photo', 400));
 
   req.file.filename = `${req.params.id}.jpeg`;
 
@@ -37,7 +37,7 @@ exports.processEventPhoto = asyncCatch(async (req, res, next) => {
     .toBuffer();
 
   await s3Upload(data, 'events', req.file.filename);
-
+  req.body.photo = req.file.filename;
   next();
 });
 
@@ -96,7 +96,7 @@ exports.updateAndSaveEvent = asyncCatch(async (req, res, next) => {
     req.body.ticketTiers.length < req.event.ticketTiers.length
   ) {
     return next(
-      new AppError('Ticket tiers cannot be removed from this endpoint.', 400)
+      new AppError('Tickets cannot be removed from this endpoint.', 400)
     );
   }
 
