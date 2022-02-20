@@ -14,6 +14,7 @@ const {
   clearTestMailbox,
   getTestEmails,
 } = require('../test/helpers/emailHelpers');
+const createUserRequestPromises = require('../test/helpers/createUserRequestPromises');
 
 const setupEventAndOrganizer = async ({
   login = false,
@@ -698,19 +699,16 @@ describe('bookings', () => {
         users = [users];
       }
 
-      const checkoutPromises = users.map(({ user, token }) => {
-        const callCreateCheckout = testApp()
-          .post(`/api/bookings/checkout-session/${event._id}`)
-          .send({
-            name: user.name,
-            email: user.email,
-            tickets,
-          });
-        if (token) {
-          callCreateCheckout.auth(token, { type: 'bearer' });
+      const checkoutPromises = createUserRequestPromises(
+        users,
+        `/api/bookings/checkout-session/${event._id}`,
+        'post',
+        {
+          name: (user) => user.name,
+          email: (user) => user.email,
+          tickets,
         }
-        return callCreateCheckout;
-      });
+      );
 
       return checkoutPromises.length === 1
         ? checkoutPromises[0]
