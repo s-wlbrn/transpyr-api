@@ -6,5 +6,6 @@ public/img
 config.env
 coverage/
 test/jest.setup.js
+test/jest.env.js
 
 uploadPhoto.js
