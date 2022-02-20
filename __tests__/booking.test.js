@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { Stripe } = require('stripe');
 const testApp = require('../test/testApp');
-const db = require('../test/db');
 const Booking = require('../models/booking.model');
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
@@ -10,8 +9,11 @@ const {
   createAdminAndLogin,
   createUserAndLogin,
   createGuest,
-} = require('../test/authHelpers');
-const { clearTestMailbox, getTestEmails } = require('../test/emailHelpers');
+} = require('../test/helpers/authHelpers');
+const {
+  clearTestMailbox,
+  getTestEmails,
+} = require('../test/helpers/emailHelpers');
 
 const setupEventAndOrganizer = async ({
   login = false,
@@ -73,18 +75,6 @@ const setupBookings = async (documents) => {
   const bookings = await Booking.bulkWrite(formattedDocuments);
   return bookings;
 };
-
-beforeAll(async () => {
-  await db.connect();
-});
-
-afterEach(async () => {
-  await db.clearDatabase();
-});
-
-afterAll(async () => {
-  await db.closeDatabase();
-});
 
 describe('refund requests', () => {
   describe('creating request', () => {

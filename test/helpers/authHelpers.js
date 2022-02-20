@@ -4,10 +4,10 @@ const { mockUsers } = require('../mock-data/mockData');
 
 const createAndLogin = (overrides) => async () => {
   const mockUser = mockUsers(1, { overrides });
-  await User.create(mockUser);
+  const user = await User.create(mockUser);
 
   const response = await testApp().post('/api/users/signin').send({
-    email: mockUser.email,
+    email: user.email,
     password: mockUser.password,
   });
 

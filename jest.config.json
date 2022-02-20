@@ -1,4 +1,5 @@
 {
   "setupFiles": ["./test/jest.env.js"],
-  "setupFilesAfterEnv": ["./test/jest.setup.js"]
+  "setupFilesAfterEnv": ["./test/jest.setup.js"],
+  "maxWorkers": "4"
 }

@@ -10,6 +10,9 @@ const ticketBuilder = build('Ticket', {
     price: fake((f) => f.datatype.number({ min: 0 })),
     online: fake((f) => f.datatype.boolean()),
     capacity: 0,
+    canceled: perBuild(() => {
+      return false;
+    }),
   },
   postBuild: (ticket) => {
     //generate limitPerCustomer based on capacity

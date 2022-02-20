@@ -115,6 +115,7 @@ exports.cancelEvent = asyncCatch(async (req, res, next) => {
   if (req.event.canceled) {
     return next(new AppError('Event is already canceled.', 400));
   }
+
   if (new Date(req.event.dateTimeStart) < Date.now()) {
     return next(new AppError('Past events cannot be canceled.', 400));
   }
@@ -131,14 +132,37 @@ exports.cancelEvent = asyncCatch(async (req, res, next) => {
 });
 
 exports.cancelTicket = asyncCatch(async (req, res, next) => {
-  if (!req.params.ticketId)
+  if (!req.params.ticketId) {
     return next(new AppError('Please provide a ticket ID', 400));
+  }
+
+  if (new Date(req.event.dateTimeStart) < Date.now()) {
+    return next(new AppError('Unable to cancel tickets of past events.', 400));
+  }
+
+  //handle last active ticket
+  if (req.event.ticketTiers.filter((t) => t.canceled === false).length === 1) {
+    return next(
+      new AppError('Unable to cancel the last ticket of an event.', 400)
+    );
+  }
+
+  if (req.event.canceled) {
+    return next(new AppError('Event is already canceled.', 400));
+  }
 
   const ticketIndex = req.event.ticketTiers.findIndex(
     (el) => el.id === req.params.ticketId
   );
-  if (typeof ticketIndex !== 'number')
+
+  if (ticketIndex < 0) {
     return next(new AppError('The specified ticket does not exist', 404));
+  }
+
+  if (req.event.ticketTiers[ticketIndex].canceled) {
+    return next(new AppError('The specified ticket is already canceled', 400));
+  }
+
   req.event.ticketTiers[ticketIndex].canceled = true;
   await req.event.save();
   await cancelAllBookings('ticket', req.params.ticketId);
@@ -150,12 +174,26 @@ exports.cancelTicket = asyncCatch(async (req, res, next) => {
 });
 
 exports.publishEvent = asyncCatch(async (req, res, next) => {
+  if (new Date(req.event.dateTimeStart) < Date.now()) {
+    return next(
+      new AppError(
+        'Past events cannot be published. Please change the start date.',
+        400
+      )
+    );
+  }
+
+  if (req.event.published) {
+    next(new AppError('Event is already published.', 400));
+  }
+
   req.body = filterFields(req.body, 'feePolicy', 'refundPolicy');
   if (!req.body.feePolicy) {
     next(
       new AppError('An event cannot be published without a fee policy.', 400)
     );
   }
+
   req.body.published = true;
   next();
 });

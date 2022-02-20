@@ -13,38 +13,35 @@ const ticketTiersSchema = new mongoose.Schema(
   {
     tierName: {
       type: String,
-      required: true,
+      required: [true, 'Ticket name is required.'],
       maxLength: [50, 'Ticket name cannot exceed 50 characters.'],
-      //unique
     },
     tierDescription: {
       type: String,
-      required: true,
+      required: [true, 'Ticket description is required.'],
       maxLength: [150, 'Ticket description cannot exceed 150 characters.'],
     },
     price: {
       type: Number,
-      required: true,
+      required: [true, 'Ticket price is required.'],
       min: [0, 'Ticket price must be a positive number.'],
     },
     online: {
       type: Boolean,
-      required: true,
+      required: [true, 'Online ticket status is required.'],
     },
     capacity: {
       type: Number,
-      default: 0,
       min: [0, 'Ticket capacity must be a positive number.'],
     },
     limitPerCustomer: {
       type: Number,
-      default: 0,
       min: [0, 'Per-customer limit must be a positive number.'],
       validate: {
         validator: function (v) {
           return this.capacity === 0 || v <= this.capacity;
         },
-        message: 'Limit per customer cannot exceed ticket capacity.',
+        message: 'Per-customer limit cannot exceed ticket capacity.',
       },
     },
     canceled: {
@@ -58,12 +55,12 @@ const ticketTiersSchema = new mongoose.Schema(
 const locationSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: 'Point',
+    enum: { values: ['Point'], message: 'Invalid location.' },
     default: 'Point',
   },
   coordinates: {
     type: [Number],
-    required: true,
+    required: [true, 'Location coordinates are required.'],
     validate: {
       validator: function (v) {
         return v.length === 2;
@@ -84,47 +81,53 @@ const eventSchema = new mongoose.Schema(
     type: {
       type: String,
       required: [true, 'Please specify an event type.'],
-      enum: [
-        'Lecture',
-        'Class',
-        'Performance',
-        'Social',
-        'Workshop',
-        'Conference',
-        'Convention',
-        'Expo',
-        'Game',
-        'Rally',
-        'Screening',
-        'Tour',
-      ],
+      enum: {
+        values: [
+          'Lecture',
+          'Class',
+          'Performance',
+          'Social',
+          'Workshop',
+          'Conference',
+          'Convention',
+          'Expo',
+          'Game',
+          'Rally',
+          'Screening',
+          'Tour',
+        ],
+        message: 'Invalid event type.',
+      },
     },
     category: {
       type: String,
       required: [true, 'Please specify an event category.'],
-      enum: [
-        'Business',
-        'Food',
-        'Health & Lifestyle',
-        'Music',
-        'Vehicle',
-        'Charity',
-        'Community',
-        'Fashion',
-        'Film',
-        'Home',
-        'Hobbies',
-        'Performing & Visual Arts',
-        'Politics',
-        'Spirituality',
-        'School',
-        'Science & Technology',
-        'Holiday',
-        'Sports & Fitness',
-        'Travel',
-        'Outdoor & Recreation',
-        'Other',
-      ],
+      enum: {
+        values: [
+          'Business',
+          'Food',
+          'Health & Lifestyle',
+          'Music',
+          'Vehicle',
+          'Charity',
+          'Community',
+          'Fashion',
+          'Film',
+          'Home',
+          'Hobbies',
+          'Performing & Visual Arts',
+          'Politics',
+          'Spirituality',
+          'School',
+          'Science & Technology',
+          'Holiday',
+          'Sports & Fitness',
+          'Travel',
+          'Outdoor & Recreation',
+          'Other',
+        ],
+        message: 'Invalid event category.',
+      },
     },
     description: {
       type: String,
@@ -174,12 +177,12 @@ const eventSchema = new mongoose.Schema(
     },
     dateTimeStart: {
       type: Date,
-      required: true,
+      required: [true, 'An event must have a start date and time.'],
       min: [Date.now(), 'Event start date must be in the future.'],
     },
     dateTimeEnd: {
       type: Date,
-      required: true,
+      required: [true, 'An event must have an end date and time.'],
       validate: {
         validator: function (v) {
           return v > this.dateTimeStart;
@@ -195,7 +198,6 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: [true, 'An event must have an organizer.'],
-      select: true,
     },
     address: {
       type: String,
@@ -242,7 +244,6 @@ const eventSchema = new mongoose.Schema(
     published: {
       type: Boolean,
       default: false,
-      select: true,
     },
   },
   {

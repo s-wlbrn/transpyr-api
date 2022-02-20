@@ -7,7 +7,7 @@ const APIFeatures = require('../libs/apiFeatures');
 const factory = require('../controllers/handlerFactory');
 
 //Emails
-module.exports.sendRefundEmailOrganizer = async (req, requestId) => {
+exports.sendRefundEmailOrganizer = async (req, requestId) => {
   const event = await Event.findById(req.params.id)
     .select('organizer')
     .populate('organizer');
@@ -17,7 +17,7 @@ module.exports.sendRefundEmailOrganizer = async (req, requestId) => {
   ).sendCancelationRequestOrganizer();
 };
 
-module.exports.sendRefundResolvedEmails = async (
+exports.sendRefundResolvedEmails = async (
   status,
   eventName,
   organizer,
@@ -41,7 +41,7 @@ module.exports.sendRefundResolvedEmails = async (
   }
 };
 
-module.exports.sendBookingSuccessEmail = async (name, email, event, user) => {
+exports.sendBookingSuccessEmail = async (name, email, event, user) => {
   try {
     const mailer = await new Email(
       { name, email },
@@ -103,7 +103,7 @@ exports.getBookingsToRefund = async (userId, eventId, selectedTicketIds) => {
   return bookings;
 };
 
-module.exports.getRefundRequests = async (query) => {
+exports.getRefundRequests = async (query) => {
   const requestBookings = await Booking.aggregate([
     { $match: query },
     {
@@ -160,7 +160,7 @@ exports.cancelAllBookings = async (matchKey, matchValue) => {
   await Promise.all(ticketPromises);
 };
 
-module.exports.createCheckoutBooking = async (session) => {
+exports.createCheckoutBooking = async (session) => {
   try {
     const bookings = await Promise.all(
       session.line_items.data.map(async (item) => {
@@ -182,7 +182,7 @@ module.exports.createCheckoutBooking = async (session) => {
   }
 };
 
-module.exports.updateRefundRequests = async (bookings, status) => {
+exports.updateRefundRequests = async (bookings, status) => {
   const updatedBookingsPromises = bookings.map((booking) => {
     booking.refundRequest.status = status;
     booking.refundRequest.resolved = true;
@@ -196,7 +196,7 @@ module.exports.updateRefundRequests = async (bookings, status) => {
   return updatedBookings;
 };
 
-module.exports.addRefundRequests = async (bookings, reason) => {
+exports.addRefundRequests = async (bookings, reason) => {
   //create uuid for refund request
   const requestId = mongoose.Types.ObjectId();
   //map bookings with refundRequest added, return array of promises
@@ -219,7 +219,7 @@ module.exports.addRefundRequests = async (bookings, reason) => {
 };
 
 //Helpers
-module.exports.getSelectedTicketData = (selectedTickets, eventTickets) => {
+exports.getSelectedTicketData = (selectedTickets, eventTickets) => {
   const ticketKeys = Object.keys(selectedTickets);
 
   const selectedTicketsCount = ticketKeys.reduce(
@@ -245,7 +245,7 @@ module.exports.getSelectedTicketData = (selectedTickets, eventTickets) => {
   };
 };
 
-module.exports.createFreeCheckoutSession = (
+exports.createFreeCheckoutSession = (
   orderId,
   eventId,
   customer,
