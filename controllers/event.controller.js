@@ -132,10 +132,6 @@ exports.cancelEvent = asyncCatch(async (req, res, next) => {
 });
 
 exports.cancelTicket = asyncCatch(async (req, res, next) => {
-  if (!req.params.ticketId) {
-    return next(new AppError('Please provide a ticket ID', 400));
-  }
-
   if (new Date(req.event.dateTimeStart) < Date.now()) {
     return next(new AppError('Unable to cancel tickets of past events.', 400));
   }
