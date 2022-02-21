@@ -1,22 +1,27 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
-const refreshTokenSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
+const refreshTokenSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+    },
+    token: String,
+    expires: Date,
+    created: {
+      type: Date,
+      default: Date.now,
+    },
+    //createdByIp: String,
+    revoked: Date,
+    //revokedByIp: String,
+    replacedByToken: String,
   },
-  token: String,
-  expires: Date,
-  created: {
-    type: Date,
-    default: Date.now,
-  },
-  //createdByIp: String,
-  revoked: Date,
-  //revokedByIp: String,
-  replacedByToken: String,
-});
+  {
+    toObject: { virtuals: true },
+  }
+);
 
 refreshTokenSchema.set('toJSON', {
   virtuals: true,
@@ -30,7 +35,7 @@ refreshTokenSchema.set('toJSON', {
 
 //VIRTUAL FIELDS
 refreshTokenSchema.virtual('isExpired').get(function () {
-  return Date.now >= this.expires;
+  return Date.now() >= this.expires;
 });
 
 refreshTokenSchema.virtual('isActive').get(function () {
