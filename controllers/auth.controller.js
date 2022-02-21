@@ -17,7 +17,7 @@ const extractToken = (headers) => {
 };
 
 const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id, iat: Date.now() }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
@@ -63,8 +63,10 @@ const generateRefreshToken = (userId) => {
 
 const getRefreshToken = async (token) => {
   const refreshToken = await RefreshToken.findOne({ token }).populate('user');
+
   if (!refreshToken || !refreshToken.isActive)
     throw new AppError('Invalid token.', 401);
+
   return refreshToken;
 };
 
@@ -235,6 +237,7 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
 
 exports.refreshToken = asyncCatch(async (req, res, next) => {
   const token = req.cookies.refreshToken;
+
   const refreshToken = await getRefreshToken(token);
   const { user } = refreshToken;
 
