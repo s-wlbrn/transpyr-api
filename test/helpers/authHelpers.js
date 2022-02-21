@@ -11,9 +11,14 @@ const createAndLogin = (overrides) => async () => {
     password: mockUser.password,
   });
 
+  const refreshToken = response.header['set-cookie'][0]
+    .split(';')[0]
+    .split('=')[1];
+
   const userData = {
     token: response.body.token,
     user: response.body.data.user,
+    refreshToken,
   };
 
   return userData;
