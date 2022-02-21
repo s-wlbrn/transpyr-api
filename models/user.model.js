@@ -74,7 +74,6 @@ const userSchema = new mongoose.Schema(
     active: {
       type: Boolean,
       default: true,
-      select: false,
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
@@ -146,6 +145,7 @@ userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
 
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
+
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
