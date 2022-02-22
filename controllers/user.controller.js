@@ -82,7 +82,7 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   const eventFields =
     'id name dateTimeStart dateTimeEnd photo ticketTiers totalBookings';
   const defaultFields =
-    'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events';
+    'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events,active';
 
   //paginate options
   const pagination = req.query.paginate ? JSON.parse(req.query.paginate) : {};
@@ -125,18 +125,22 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
     });
   }
 
-  const doc = await queryFeatures.query;
+  const user = await queryFeatures.query;
+
+  if (!user || !user.active) {
+    return next(new AppError('No active user found with specified ID', 404));
+  }
 
   //remove favorites field if private
-  if (doc.privateFavorites) {
-    doc.favorites = undefined;
+  if (user.privateFavorites) {
+    user.favorites = undefined;
   }
-  doc.privateFavorites = undefined;
+  user.privateFavorites = undefined;
 
   res.status(200).json({
     status: 'success',
     data: {
-      user: doc,
+      user,
     },
   });
 });
