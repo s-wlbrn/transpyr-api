@@ -149,12 +149,16 @@ exports.signin = asyncCatch(async (req, res, next) => {
 });
 
 exports.forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+  if (!email)
+    return next(new AppError('Please provide an email address.', 400));
+
   //get user from email posted
-  const user = await User.findOne({ email: req.body.email });
+  const user = await User.findOne({ email });
 
   if (!user || !user.active) {
     return next(
-      new AppError('This email address does not belong to a user.', 404)
+      new AppError('This email address does not belong to an active user.', 404)
     );
   }
 
