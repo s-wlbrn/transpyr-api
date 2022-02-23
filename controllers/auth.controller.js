@@ -252,16 +252,26 @@ exports.refreshToken = asyncCatch(async (req, res, next) => {
 });
 
 exports.revokeToken = asyncCatch(async (req, res, next) => {
-  const token = req.body.token || req.cookies.refreshToken;
+  const token = req.cookies.refreshToken;
 
   if (!token) return next(new AppError('Token is required', 400));
   //get token
-  const refreshTokenToRevoke = await RefreshToken.findOne({ token });
+  const refreshTokenToRevoke = await RefreshToken.findOne({
+    token,
+    revoked: undefined,
+    expires: {
+      $gt: Date.now(),
+    },
+  });
   //handle invalid token
   if (!refreshTokenToRevoke) return next(new AppError('Invalid token.', 400));
+
   //handle user is not admin and does not own token
-  if (!refreshTokenToRevoke.user === req.user.id && !req.user.role === 'admin')
-    return next(new AppError('Unauthorized', 401));
+  if (
+    String(refreshTokenToRevoke.user) !== String(req.user.id) &&
+    req.user.role !== 'admin'
+  )
+    return next(new AppError('Unauthorized', 403));
 
   //revoke token
   refreshTokenToRevoke.revoked = Date.now();
