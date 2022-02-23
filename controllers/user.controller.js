@@ -82,10 +82,17 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   const eventFields =
     'id name dateTimeStart dateTimeEnd photo ticketTiers totalBookings';
   const defaultFields =
-    'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events,active';
+    'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events';
 
   //paginate options
-  const pagination = req.query.paginate ? JSON.parse(req.query.paginate) : {};
+  let pagination = {};
+  //conditionally parse JSON
+  if (req.query.paginate) {
+    pagination =
+      typeof req.query.paginate === 'string'
+        ? JSON.parse(req.query.paginate)
+        : req.query.paginate;
+  }
   const limit = pagination.limit ? Number(pagination.limit) : 4;
   const skip = pagination.page ? limit * (pagination.page - 1) : 0;
 
@@ -93,6 +100,7 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   req.query.fields = req.query.fields
     ? filterQueryList(req.query.fields, defaultFields) || defaultFields
     : defaultFields;
+  req.query.fields += ',active';
 
   //select fields
   const queryFeatures = new APIFeatures(
