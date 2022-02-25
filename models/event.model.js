@@ -173,7 +173,7 @@ const eventSchema = new mongoose.Schema(
     },
     photo: {
       type: String,
-      default: 'default.jpg',
+      default: 'default.jpeg',
     },
     dateTimeStart: {
       type: Date,

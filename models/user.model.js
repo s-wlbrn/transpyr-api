@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
     },
     photo: {
       type: String,
-      default: 'default.jpg',
+      default: 'default.jpeg',
     },
     tagline: {
       type: String,
