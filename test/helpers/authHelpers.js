@@ -2,8 +2,10 @@ const testApp = require('../testApp');
 const User = require('../../models/user.model');
 const { mockUsers } = require('../mock-data/mockData');
 
-const createAndLogin = (overrides) => async () => {
-  const mockUser = mockUsers(1, { overrides });
+const createAndLogin = (overrides) => async (otherOverrides) => {
+  const mockUser = mockUsers(1, {
+    overrides: { ...overrides, ...otherOverrides },
+  });
   const user = await User.create(mockUser);
 
   const response = await testApp().post('/api/users/signin').send({
@@ -17,7 +19,7 @@ const createAndLogin = (overrides) => async () => {
 
   const userData = {
     token: response.body.token,
-    user: response.body.data.user,
+    user: { ...response.body.data.user, password: user.password },
     refreshToken,
   };
 
