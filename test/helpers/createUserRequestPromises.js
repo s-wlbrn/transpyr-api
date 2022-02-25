@@ -15,7 +15,7 @@ const getBodyData = (body, user) => {
   return data;
 };
 
-module.exports = (users, url, method, body) => {
+module.exports = (users, url, { method, body, headers } = {}) => {
   const requestPromises = users.map((user) => {
     const apiCall = testApp()[method](url);
 
@@ -27,6 +27,13 @@ module.exports = (users, url, method, body) => {
 
     if (user.token) {
       apiCall.auth(user.token, { type: 'bearer' });
+    }
+
+    if (headers) {
+      const headerKeys = Object.keys(headers);
+      headerKeys.forEach((key) => {
+        apiCall.set(key, headers[key]);
+      });
     }
 
     return apiCall;
