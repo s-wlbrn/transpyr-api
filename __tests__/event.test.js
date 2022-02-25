@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { S3 } = require('aws-sdk');
 const Event = require('../models/event.model');
 const Booking = require('../models/booking.model');
 const {
@@ -20,25 +21,6 @@ const {
 const validationTestData = require('../test/eventValidationTestData');
 const createUserRequestPromises = require('../test/helpers/createUserRequestPromises');
 const testApp = require('../test/testApp');
-
-const mockPutObject = jest.fn(() => {
-  return {
-    promise: () => {
-      return Promise.resolve({
-        etag: '"6805f2cfc46c0f04559748bb039d69ae"',
-        Location: 'https://s3.amazonaws.com/event-booking-test/test.jpg',
-      });
-    },
-  };
-});
-
-jest.mock('aws-sdk', () => {
-  return {
-    S3: jest.fn().mockImplementation(() => ({
-      putObject: mockPutObject,
-    })),
-  };
-});
 
 describe('Events', () => {
   describe('Getting all events', () => {
@@ -274,7 +256,7 @@ describe('Events', () => {
       const requestPromises = createUserRequestPromises(
         users,
         `/api/events/${_id}`,
-        'get'
+        { method: 'get' }
       );
 
       const responses = await Promise.all(requestPromises);
@@ -588,6 +570,8 @@ describe('Events', () => {
   describe('uploading event photo', () => {
     //updates event photo
     it('updates event photo', async () => {
+      const mockPutObject = jest.spyOn(S3.prototype, 'putObject');
+
       const { token, user } = await createUserAndLogin();
       const testEvent = await setupEvents(
         mockEvents(1, [{ overrides: { organizer: user._id } }])
@@ -606,7 +590,7 @@ describe('Events', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.data.photo).not.toBe('default.jpeg');
+      expect(response.body.data.data.photo).toBe(`${testEvent.id}.jpeg`);
     });
 
     it('returns 403 when user is not event organizer and 401 when user not logged in', async () => {
@@ -1006,8 +990,7 @@ describe('Events', () => {
       const requestPromises = createUserRequestPromises(
         users,
         `/api/events/${testEvent.id}/publish`,
-        'patch',
-        { feePolicy: 'passFee' }
+        { method: 'patch', body: { feePolicy: 'passFee' } }
       );
 
       const responses = await Promise.all(requestPromises);
