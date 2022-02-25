@@ -224,6 +224,15 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
   if (!password) {
     return next(new AppError('Please enter your current password.', 400));
   }
+
+  if (!newPassword) {
+    return next(new AppError('Please enter your new password.', 400));
+  }
+
+  if (!newPasswordConfirm) {
+    return next(new AppError('Please confirm your new password.', 400));
+  }
+
   //get user
   const user = await User.findById(req.user._id).select('+password');
   //check password in body
