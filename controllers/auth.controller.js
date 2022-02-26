@@ -139,7 +139,16 @@ exports.signin = asyncCatch(async (req, res, next) => {
     return next(
       new AppError(
         'Either the specified password is incorrect, or a user with this email address does not exist. Please try again.',
-        400
+        401
+      )
+    );
+  }
+
+  if (!user.active) {
+    return next(
+      new AppError(
+        'The account associated with this email address has been deactivated',
+        403
       )
     );
   }
