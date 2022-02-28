@@ -1,6 +1,18 @@
+const fs = require('fs');
+
 class S3 {}
 
-const mockPutObject = jest.fn(() => {
+const mockGetObject = () => {
+  return {
+    promise: () => {
+      return Promise.resolve({
+        Body: Buffer.from(fs.readFileSync('./test/mock-data/test-image.jpg')),
+      });
+    },
+  };
+};
+
+const mockPutObject = () => {
   return {
     promise: () => {
       return Promise.resolve({
@@ -9,9 +21,10 @@ const mockPutObject = jest.fn(() => {
       });
     },
   };
-});
+};
 
 S3.prototype.putObject = mockPutObject;
+S3.prototype.getObject = mockGetObject;
 
 const awsSdk = {
   S3,
