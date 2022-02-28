@@ -847,7 +847,6 @@ describe('Events', () => {
     });
   });
 
-  //doesnt check if you're canceling the last, just that one is left
   it('returns 400 when ticket already canceled', async () => {
     const { token, user } = await createUserAndLogin();
     const testTickets = mockTickets(3, [{ overrides: { canceled: true } }]);
@@ -887,7 +886,9 @@ describe('Events', () => {
   it('returns 404 when ticket not found', async () => {
     const { token, user } = await createUserAndLogin();
     const testEvent = await setupEvents(
-      mockEvents(1, [{ overrides: { organizer: user._id } }])
+      mockEvents(1, [
+        { overrides: { ticketTiers: mockTickets(2), organizer: user._id } },
+      ])
     );
     const fakeTicketId = mongoose.Types.ObjectId();
 
@@ -904,6 +905,7 @@ describe('Events', () => {
       mockEvents(1, [
         {
           overrides: {
+            ticketTiers: mockTickets(2),
             organizer: user._id,
             canceled: true,
           },
