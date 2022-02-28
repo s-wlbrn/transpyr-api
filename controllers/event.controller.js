@@ -10,7 +10,7 @@ const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const APIFeatures = require('../libs/apiFeatures');
 const multerUpload = require('../libs/multerUpload');
-const s3Upload = require('../libs/s3Upload');
+const S3Service = require('../services/S3.service');
 
 exports.uploadEventPhoto = multerUpload.single('photo');
 
@@ -21,7 +21,7 @@ exports.processEventPhoto = asyncCatch(async (req, res, next) => {
 
   const processedPhoto = await eventService.processEventPhoto(req.file.buffer);
 
-  await s3Upload(processedPhoto, 'events', req.file.filename);
+  await S3Service.uploadImage(processedPhoto, 'events', req.file.filename);
   req.body.photo = req.file.filename;
   next();
 });

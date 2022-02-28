@@ -1,5 +1,4 @@
 const express = require('express');
-const aws = require('aws-sdk');
 const { Readable } = require('stream');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -9,6 +8,7 @@ const hpp = require('hpp');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const S3Service = require('./services/S3.service');
 const asyncCatch = require('./libs/asyncCatch');
 
 //import custom error class
@@ -88,20 +88,14 @@ app.use(compression());
 app.get(
   '/image/:folder/:id',
   asyncCatch(async (req, res, next) => {
-    const s3 = new aws.S3();
     const { folder, id } = req.params;
 
     //get file
-    const file = await s3
-      .getObject({
-        Bucket: 'transpyr-storage',
-        Key: `${folder}/${id}`,
-      })
-      .promise();
+    const fileBuffer = await S3Service.getImage(folder, id);
 
     //create stream
     const readStream = new Readable();
-    readStream.push(file.Body);
+    readStream.push(fileBuffer);
     readStream.push(null);
 
     res.header('Content-Type', 'image/jpeg');
