@@ -4,7 +4,6 @@ const Event = require('../models/event.model');
 const Booking = require('../models/booking.model');
 const Email = require('./email.service');
 const APIFeatures = require('../libs/apiFeatures');
-const factory = require('../controllers/handlerFactory');
 
 //Emails
 exports.sendRefundEmailOrganizer = async (req, requestId) => {
@@ -72,7 +71,17 @@ exports.getBookings = async (query, { activeOnly = true, userId }) => {
   return bookings;
 };
 
-exports.getBookingById = factory.getOne(Booking, { populate: 'event' });
+exports.getBookingById = async (id) => Booking.findById(id);
+
+exports.getUserBookedEventsWithTotals = async (userId) => {
+  const bookings = await Booking.aggregate([
+    { $match: { user: userId, active: true } },
+    { $project: { event: 1 } },
+    { $group: { _id: '$event', total: { $sum: 1 } } },
+  ]);
+
+  return bookings;
+};
 
 exports.getBookingsByOrderId = async (orderId) => {
   const bookings = await Booking.find({ orderId }).select(

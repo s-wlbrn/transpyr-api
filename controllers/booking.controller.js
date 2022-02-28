@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
+const Booking = require('../models/booking.model');
 const bookingService = require('../services/booking.service');
-const Event = require('../models/event.model');
+const eventService = require('../services/event.service');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
+const factory = require('./handlerFactory');
 
 const completeFreeOrder = async (
   req,
@@ -205,7 +207,7 @@ exports.createValidateCheckout = asyncCatch(async (req, res, next) => {
   const ticketKeys = Object.keys(tickets);
 
   //get event to book from params
-  req.bookedEvent = await Event.findById(req.params.eventId);
+  req.bookedEvent = await eventService.getEventById(req.params.eventId);
   const { bookedEvent } = req;
 
   //handle no event
@@ -385,4 +387,4 @@ exports.getBookings = asyncCatch(async (req, res, next) => {
   });
 });
 
-exports.getBooking = bookingService.getBookingById;
+exports.getBooking = factory.getOne(Booking, { populate: 'event' });
