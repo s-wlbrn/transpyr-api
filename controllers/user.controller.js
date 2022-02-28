@@ -1,4 +1,3 @@
-const sharp = require('sharp');
 const User = require('../models/user.model');
 const userService = require('../services/user.service');
 const AppError = require('../libs/AppError');
@@ -8,7 +7,7 @@ const factory = require('./handlerFactory');
 const filterQueryList = require('../libs/filterQueryList');
 const APIFeatures = require('../libs/apiFeatures');
 const multerUpload = require('../libs/multerUpload');
-const s3Upload = require('../libs/s3Upload');
+const S3Service = require('../services/S3.service');
 
 exports.uploadUserPhoto = multerUpload.single('photo');
 
@@ -20,7 +19,7 @@ exports.processUserPhoto = asyncCatch(async (req, res, next) => {
   const data = await userService.processUserPhoto(req.file.buffer);
 
   //upload to s3
-  await s3Upload(data, 'users', req.file.filename);
+  await S3Service.uploadImage(data, 'users', req.file.filename);
 
   //attach filename to req.body
   req.body.photo = req.file.filename;
@@ -67,17 +66,8 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   const defaultFields =
     'name,photo,createdAt,tagline,bio,interests,favorites,privateFavorites,events';
 
-  //paginate options
-  let pagination = {};
-  //conditionally parse JSON
-  if (req.query.paginate) {
-    pagination =
-      typeof req.query.paginate === 'string'
-        ? JSON.parse(req.query.paginate)
-        : req.query.paginate;
-  }
-  const limit = pagination.limit ? Number(pagination.limit) : 4;
-  const skip = pagination.page ? limit * (pagination.page - 1) : 0;
+  //paginate options for populated event fields
+  const pagination = userService.paginateUserEventFields(req.query.paginate);
 
   //ensure selected fields are subset of default, or use default
   req.query.fields = req.query.fields
@@ -92,41 +82,22 @@ exports.getUserProfile = asyncCatch(async (req, res, next) => {
   ).limit();
 
   //populate selected fields
-  const fieldsArray = req.query.fields.split(',');
-  if (fieldsArray.includes('favorites')) {
-    queryFeatures.query.populate({
-      path: 'favorites',
-      match: { published: true },
-      options: {
-        skip,
-        limit,
-        select: eventFields,
-      },
-    });
-  }
-  if (fieldsArray.includes('events')) {
-    queryFeatures.query.populate({
-      path: 'events',
-      match: { published: true },
-      options: {
-        skip,
-        limit,
-        select: eventFields,
-      },
-    });
-  }
+  const selectedFields = req.query.fields.split(',');
+  queryFeatures.query = userService.populateUserEventFields(
+    queryFeatures.query,
+    selectedFields,
+    eventFields,
+    pagination
+  );
 
-  const user = await queryFeatures.query;
+  let user = await queryFeatures.query;
 
   if (!user || !user.active) {
     return next(new AppError('No active user found with specified ID', 404));
   }
 
   //remove favorites field if private
-  if (user.privateFavorites) {
-    user.favorites = undefined;
-  }
-  user.privateFavorites = undefined;
+  user = userService.removePrivateFavorites(user);
 
   res.status(200).json({
     status: 'success',
