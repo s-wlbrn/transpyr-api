@@ -1,4 +1,6 @@
 const express = require('express');
+const aws = require('aws-sdk');
+const { Readable } = require('stream');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -7,7 +9,6 @@ const hpp = require('hpp');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
-const aws = require('aws-sdk');
 const asyncCatch = require('./libs/asyncCatch');
 
 //import custom error class
@@ -90,15 +91,21 @@ app.get(
     const s3 = new aws.S3();
     const { folder, id } = req.params;
 
-    const stream = await s3
-      .getObject({ Bucket: 'transpyr-storage', Key: `${folder}/${id}` })
-      .createReadStream()
-      .on('error', (error) => {
-        return next(error);
-      });
+    //get file
+    const file = await s3
+      .getObject({
+        Bucket: 'transpyr-storage',
+        Key: `${folder}/${id}`,
+      })
+      .promise();
+
+    //create stream
+    const readStream = new Readable();
+    readStream.push(file.Body);
+    readStream.push(null);
 
     res.header('Content-Type', 'image/jpeg');
-    stream.pipe(res);
+    readStream.pipe(res);
   })
 );
 
