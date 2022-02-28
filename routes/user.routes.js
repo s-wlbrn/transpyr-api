@@ -22,7 +22,7 @@ router.delete('/refresh-token', authController.revokeToken);
 
 //current user routes
 router.patch(
-  '/update-password',
+  '/password',
   authController.updatePassword,
   authController.revokeToken
 );
@@ -49,11 +49,7 @@ router
 router
   .route('/:id')
   .get(userController.getUser)
-  .patch(
-    userController.uploadUserPhoto,
-    userController.processUserPhoto,
-    userController.updateUser
-  )
+  .patch(userController.updateUserAsAdmin, userController.updateUser)
   .delete(userController.deleteUser);
 
 module.exports = router;
