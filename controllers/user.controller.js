@@ -45,7 +45,6 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
     );
   }
 
-  // Filter all fields but 'name' and 'email'
   const filteredBody = filterFields(
     req.body,
     'name',
@@ -160,6 +159,28 @@ exports.deactivateMe = asyncCatch(async (req, res, next) => {
     status: 'success',
     data: null,
   });
+});
+
+exports.updateUserAsAdmin = asyncCatch(async (req, res, next) => {
+  // Catch password update attempt and create error
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(new AppError('Admins cannot update user passwords.', 400));
+  }
+
+  const filteredBody = filterFields(
+    req.body,
+    'name',
+    'email',
+    'privateFavorites',
+    'photo',
+    'favorites',
+    'bio',
+    'interests',
+    'tagline',
+    'active'
+  );
+  req.body = filteredBody;
+  next();
 });
 
 //Admin CRUD controllers
