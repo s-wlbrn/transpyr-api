@@ -34,7 +34,8 @@ router
     userController.getMe,
     userController.uploadUserPhoto,
     userController.processUserPhoto,
-    userController.updateMe
+    userController.updateMe,
+    userController.updateUser
   )
   .delete(userController.deactivateMe);
 

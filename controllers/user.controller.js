@@ -1,5 +1,6 @@
 const sharp = require('sharp');
 const User = require('../models/user.model');
+const userService = require('../services/user.service');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 const filterFields = require('../libs/filterFields');
@@ -16,13 +17,11 @@ exports.processUserPhoto = asyncCatch(async (req, res, next) => {
 
   req.file.filename = `${req.user.id}.jpeg`;
   //resize and format image
-  const data = await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toBuffer();
+  const data = await userService.processUserPhoto(req.file.buffer);
+
   //upload to s3
   await s3Upload(data, 'users', req.file.filename);
+
   //attach filename to req.body
   req.body.photo = req.file.filename;
   next();
@@ -57,24 +56,9 @@ exports.updateMe = asyncCatch(async (req, res, next) => {
     'tagline'
   );
   if (!req.file) delete filteredBody.photo;
+  req.body = filteredBody;
 
-  //Update User
-  const updatedUser = await User.findByIdAndUpdate(
-    req.params.id,
-    filteredBody,
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-
-  //Send updated user in response
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user: updatedUser,
-    },
-  });
+  next();
 });
 
 exports.getUserProfile = asyncCatch(async (req, res, next) => {
