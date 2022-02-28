@@ -83,6 +83,9 @@ module.exports = (err, req, res, next) => {
   //Handle multer errors
   if (error.name === 'MulterError') error = handleMulterError(err);
 
+  //Handle S3 errors
+  if (error.code === 'NoSuchKey') error = new AppError('File not found.', 404);
+
   //Handle MongoDB errors
   if (err.name === 'CastError') error = handleCastErrorDB(error);
   if (err.name === 'ValidationError') error = handleValidationErrorDB(error);
