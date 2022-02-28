@@ -557,7 +557,7 @@ describe('Authorization', () => {
       expect(response.body.message).toEqual(expect.stringMatching(/token/i));
     });
 
-    it('returns 400 for already revoked token', async () => {
+    it('returns 401 for already revoked token', async () => {
       const { token, refreshToken } = await createUserAndLogin();
 
       const refreshTokenDoc = await RefreshToken.findOne({
@@ -571,7 +571,7 @@ describe('Authorization', () => {
         .set('Cookie', `refreshToken=${refreshToken}`)
         .auth(token, { type: 'bearer' });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(401);
       expect(response.body.message).toEqual(expect.stringMatching(/invalid/i));
     });
 
@@ -589,7 +589,7 @@ describe('Authorization', () => {
         .set('Cookie', `refreshToken=${refreshToken}`)
         .auth(token, { type: 'bearer' });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(401);
       expect(response.body.message).toEqual(expect.stringMatching(/invalid/i));
     });
 
@@ -666,7 +666,10 @@ describe('Authorization', () => {
     it.each(passwordUpdateInvalidData)(
       'returns 400 for missing field: $missing',
       async ({ body, missing }) => {
-        const { token, refreshToken } = await createUserAndLogin();
+        const { token, refreshToken } = await createUserAndLogin({
+          password: 'oldpassword',
+          passwordConfirm: 'oldpassword',
+        });
 
         const response = await testApp()
           .patch('/api/users/password')
