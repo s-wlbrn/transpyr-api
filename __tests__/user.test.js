@@ -12,7 +12,7 @@ const pick = require('../test/helpers/pick');
 
 describe('Users', () => {
   describe('getting public profile', () => {
-    it('returns 200 and user profile data with populated favorites', async () => {
+    it('returns 200 and user profile data with populated events', async () => {
       //create favorited events
       const favoriteEvents = mockEvents(2);
       const { insertedIds } = await setupEvents(favoriteEvents);
@@ -209,7 +209,7 @@ describe('Users', () => {
         .auth(token, { type: 'bearer' });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.user).toMatchObject(newUser);
+      expect(response.body.data.data).toMatchObject(newUser);
     });
 
     it('filters prohibited fields', async () => {
@@ -227,12 +227,12 @@ describe('Users', () => {
         .auth(token, { type: 'bearer' });
 
       expect(response.status).toBe(200);
-      const { user } = response.body.data;
-      expect(user.role).toBe('user');
-      expect(user.active).toBe(true);
-      expect(user.passwordChangedAt).toBeUndefined();
-      expect(user.passwordResetToken).toBeUndefined();
-      expect(user.passwordResetExpires).toBeUndefined();
+      const { data } = response.body.data;
+      expect(data.role).toBe('user');
+      expect(data.active).toBe(true);
+      expect(data.passwordChangedAt).toBeUndefined();
+      expect(data.passwordResetToken).toBeUndefined();
+      expect(data.passwordResetExpires).toBeUndefined();
     });
 
     it('returns 400 when attempting to change password', async () => {
@@ -265,7 +265,7 @@ describe('Users', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.user.photo).toBe(`${user._id}.jpeg`);
+      expect(response.body.data.data.photo).toBe(`${user._id}.jpeg`);
     });
 
     it('ignores updating photo filename with no file present', async () => {
@@ -279,7 +279,7 @@ describe('Users', () => {
         .auth(token, { type: 'bearer' });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.user.photo).toBe('default.jpeg');
+      expect(response.body.data.data.photo).toBe('default.jpeg');
     });
 
     it('returns 400 for form data with file in wrong field', async () => {
