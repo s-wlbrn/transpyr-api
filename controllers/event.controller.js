@@ -1,28 +1,16 @@
-const sharp = require('sharp');
 const Event = require('../models/event.model');
-const eventService = require('../services/event.service');
-const Booking = require('../models/booking.model');
 const factory = require('./handlerFactory');
+const filterFields = require('../libs/filterFields');
+const {
+  cancelAllBookings,
+  getUserBookedEventsWithTotals,
+} = require('../services/booking.service');
+const eventService = require('../services/event.service');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
-const filterFields = require('../libs/filterFields');
 const APIFeatures = require('../libs/apiFeatures');
-const { cancelAllBookings } = require('../services/booking.service');
 const multerUpload = require('../libs/multerUpload');
 const s3Upload = require('../libs/s3Upload');
-
-//passed to getOne handler to handle unpublished events
-const authorizeUnpublishedEvent = (req, event) => {
-  if (event.published) return true;
-
-  if (
-    !req.user ||
-    (req.user.role !== 'admin' && req.user.id !== event.organizer.id)
-  ) {
-    return false;
-  }
-  return true;
-};
 
 exports.uploadEventPhoto = multerUpload.single('photo');
 
@@ -31,12 +19,9 @@ exports.processEventPhoto = asyncCatch(async (req, res, next) => {
 
   req.file.filename = `${req.params.id}.jpeg`;
 
-  const data = await sharp(req.file.buffer)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toBuffer();
+  const processedPhoto = await eventService.processEventPhoto(req.file.buffer);
 
-  await s3Upload(data, 'events', req.file.filename);
+  await s3Upload(processedPhoto, 'events', req.file.filename);
   req.body.photo = req.file.filename;
   next();
 });
@@ -47,18 +32,18 @@ exports.attachEventOrganizer = (req, res, next) => {
 };
 
 exports.getAndAuthorizeEvent = asyncCatch(async (req, res, next) => {
-  const doc = await Event.findById(req.params.id);
+  const event = await eventService.getEventById(req.params.id);
 
-  if (!doc) {
+  if (!event) {
     return next(new AppError('Event not found.', 404));
   }
   if (
     req.user.role !== 'admin' &&
-    String(doc.organizer) !== String(req.user._id)
+    String(event.organizer) !== String(req.user._id)
   ) {
     return next(new AppError('Only the organizer may access this event.', 403));
   }
-  req.event = doc;
+  req.event = event;
   next();
 });
 
@@ -147,8 +132,9 @@ exports.cancelTicket = asyncCatch(async (req, res, next) => {
     return next(new AppError('Event is already canceled.', 400));
   }
 
-  const ticketIndex = req.event.ticketTiers.findIndex(
-    (el) => el.id === req.params.ticketId
+  const ticketIndex = eventService.findTicketIndexById(
+    req.event.ticketTiers,
+    req.params.ticketId
   );
 
   if (ticketIndex < 0) {
@@ -196,16 +182,9 @@ exports.publishEvent = asyncCatch(async (req, res, next) => {
 
 exports.getMyBookedEvents = asyncCatch(async (req, res, next) => {
   //get user bookings and group by event
-  const userBookings = await Booking.aggregate([
-    { $match: { user: req.user._id, active: true } },
-    { $project: { event: 1 } },
-    { $group: { _id: '$event', total: { $sum: 1 } } },
-  ]);
+  const bookedEvents = await getUserBookedEventsWithTotals(req.user._id);
 
-  const eventIds = userBookings.map((el) => el._id);
-  const totalsMap = userBookings.reduce((acc, cur) => {
-    return { ...acc, [cur._id]: cur.total };
-  }, {});
+  const eventIds = eventService.extractEventIds(bookedEvents);
 
   const queryFeatures = new APIFeatures(
     Event.find({ _id: { $in: eventIds } }),
@@ -213,12 +192,14 @@ exports.getMyBookedEvents = asyncCatch(async (req, res, next) => {
   )
     .filter()
     .limit();
-  //queryFeatures.query.select('name dateTimeStart photo');
+
   const events = await queryFeatures.query.lean();
 
-  const eventsWithTotals = events.map((event) => {
-    return { ...event, total: totalsMap[event._id] };
-  });
+  const totalsMap = eventService.mapEventIdsToTotalBookings(bookedEvents);
+  const eventsWithTotals = eventService.addBookingTotalsToEvents(
+    events,
+    totalsMap
+  );
 
   res.status(200).json({
     status: 'success',
@@ -244,9 +225,9 @@ exports.queryOwnEvents = (req, res, next) => {
 };
 
 exports.getAllEvents = factory.getAll(Event);
-exports.getEvent = eventService.getEventById({
+exports.getEvent = factory.getOne(Event, {
   populate: { path: 'organizer', select: 'id name photo tagline' },
-  authorize: authorizeUnpublishedEvent,
+  authorize: eventService.authorizeUnpublishedEvent,
 });
 exports.createEvent = factory.createOne(Event);
 exports.updateEvent = factory.updateOne(Event);
