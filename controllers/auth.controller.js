@@ -1,72 +1,8 @@
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const { promisify } = require('util');
+const authService = require('../services/auth.service');
+const userService = require('../services/user.service');
 const Email = require('../services/email.service');
-const User = require('../models/user.model');
-const RefreshToken = require('../models/refresh-token.model');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
-
-const extractToken = (headers) => {
-  let token;
-  if (headers.authorization && headers.authorization.startsWith('Bearer')) {
-    token = headers.authorization.split(' ')[1];
-  }
-
-  return token;
-};
-
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-};
-
-const decodeToken = async (token) => {
-  //verify token
-  const decodedToken = await promisify(jwt.verify)(
-    token,
-    process.env.JWT_SECRET
-  );
-
-  //try to get user
-  const decodedUser = await User.findById(decodedToken.id);
-
-  //check if user is active
-  if (!decodedUser) {
-    return Promise.reject(
-      new AppError(
-        'The account associated with this session has been deactivated',
-        401
-      )
-    );
-  }
-  //check if password was changed after JWT issued
-  if (decodedUser.changedPasswordAfter(decodedToken.iat)) {
-    return Promise.reject(
-      new AppError(
-        'The password of the account associated with this session was changed. Please log in again.',
-        401
-      )
-    );
-  }
-
-  return decodedUser;
-};
-
-const generateRefreshToken = (userId) => {
-  return new RefreshToken({
-    user: userId,
-    expires: new Date(Date.now() + 604800000),
-  });
-};
-
-const getRefreshToken = async (token) => {
-  const refreshToken = await RefreshToken.findOne({ token }).populate('user');
-  if (!refreshToken || !refreshToken.isActive)
-    throw new AppError('Invalid token.', 401);
-  return refreshToken;
-};
 
 const createSendToken = async (
   user,
@@ -79,15 +15,12 @@ const createSendToken = async (
     throw new AppError('Invalid user', 400);
   }
 
-  const token = signToken(user._id);
-  const newRefreshToken = generateRefreshToken(user._id);
-  await newRefreshToken.save();
+  const token = authService.signToken(user._id);
+  const newRefreshToken = await authService.generateRefreshToken(user._id);
 
   //Revoke old token if provided
   if (refreshToken) {
-    refreshToken.revoked = Date.now();
-    refreshToken.replacedByToken = newRefreshToken;
-    await refreshToken.save();
+    await authService.revokeRefreshToken(refreshToken, newRefreshToken);
   }
 
   const cookieOptions = {
@@ -112,14 +45,18 @@ const createSendToken = async (
 };
 
 exports.signup = asyncCatch(async (req, res, next) => {
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-  });
+  const { name, email, password, passwordConfirm } = req.body;
+  const newUser = await userService.createUser(
+    name,
+    email,
+    password,
+    passwordConfirm
+  );
+
+  //Send welcome email
   const url = `${req.protocol}://${process.env.FRONTEND_HOST}/events/create`;
   await new Email(newUser, url).sendWelcome();
+
   await createSendToken(newUser, 201, req, res);
 });
 
@@ -130,9 +67,9 @@ exports.signin = asyncCatch(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError('Please provide an email and password', 400));
   }
-  //check if user exists and password is correct
-  const user = await User.findOne({ email }).select('+password');
 
+  //check if user exists and password is correct
+  const user = await userService.getUser({ email }, { password: true });
   if (!user || !(await user.isCorrectPassword(password, user.password))) {
     return next(
       new AppError(
@@ -142,6 +79,7 @@ exports.signin = asyncCatch(async (req, res, next) => {
     );
   }
 
+  //handle inactive user
   if (!user.active) {
     return next(
       new AppError(
@@ -161,7 +99,7 @@ exports.forgotPassword = async (req, res, next) => {
     return next(new AppError('Please provide an email address.', 400));
 
   //get user from email posted
-  const user = await User.findOne({ email });
+  const user = await userService.getUser({ email });
 
   if (!user || !user.active) {
     return next(
@@ -173,19 +111,12 @@ exports.forgotPassword = async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  //email to user
-  const resetURL = `${req.protocol}://${process.env.FRONTEND_HOST}/users/forgot-password/${resetToken}`;
+  //email user
   try {
-    await new Email(user, resetURL).sendPasswordReset();
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Email sent!',
-    });
+    const resetUrl = `${req.protocol}://${process.env.FRONTEND_HOST}/users/forgot-password/${resetToken}`;
+    await new Email(user, resetUrl).sendPasswordReset();
   } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
+    await authService.revertPasswordReset(user);
 
     return next(
       new AppError(
@@ -194,30 +125,33 @@ exports.forgotPassword = async (req, res, next) => {
       )
     );
   }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Email sent!',
+  });
 };
 
 exports.resetPassword = asyncCatch(async (req, res, next) => {
   //get user from token
-  const hashedToken = crypto
-    .createHash('sha256')
-    .update(req.params.token)
-    .digest('hex');
+  const hashedToken = authService.hashPasswordResetToken(req.params.token);
 
-  const user = await User.findOne({
+  const user = await userService.getUser({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  //if token has not expired, user exists, set new password
+  //handle invalid token
   if (!user) {
     return next(new AppError('Token is invalid or has expired.', 400));
   }
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
 
-  await user.save();
+  //reset password
+  await authService.resetUserPassword(
+    user,
+    req.body.password,
+    req.body.passwordConfirm
+  );
 
   res.status(200).json({
     status: 'success',
@@ -241,16 +175,18 @@ exports.updatePassword = asyncCatch(async (req, res, next) => {
   }
 
   //get user
-  const user = await User.findById(req.user._id).select('+password');
+  const user = await userService.getUser(
+    { _id: req.user._id },
+    { password: true }
+  );
+
   //check password in body
   if (!(await user.isCorrectPassword(password, user.password))) {
     return next(new AppError('The password entered is incorrect.', 400));
   }
 
   //update password
-  user.password = newPassword;
-  user.passwordConfirm = newPasswordConfirm;
-  await user.save();
+  await authService.updateUserPassword(user, newPassword, newPasswordConfirm);
 
   next();
 });
@@ -260,7 +196,10 @@ exports.refreshToken = asyncCatch(async (req, res, next) => {
 
   if (!token) return next(new AppError('Refresh token is required.', 400));
 
-  const refreshToken = await getRefreshToken(token);
+  const refreshToken = await authService.getRefreshToken(
+    { token },
+    { user: true }
+  );
   const { user } = refreshToken;
 
   //Send refresh token in cookie, jwt and user in res
@@ -271,14 +210,16 @@ exports.revokeToken = asyncCatch(async (req, res, next) => {
   const token = req.cookies.refreshToken;
 
   if (!token) return next(new AppError('Token is required', 400));
+
   //get token
-  const refreshTokenToRevoke = await RefreshToken.findOne({
+  const refreshTokenToRevoke = await authService.getRefreshToken({
     token,
     revoked: undefined,
     expires: {
       $gt: Date.now(),
     },
   });
+
   //handle invalid token
   if (!refreshTokenToRevoke) return next(new AppError('Invalid token.', 400));
 
@@ -290,8 +231,7 @@ exports.revokeToken = asyncCatch(async (req, res, next) => {
     return next(new AppError('Unauthorized', 403));
 
   //revoke token
-  refreshTokenToRevoke.revoked = Date.now();
-  await refreshTokenToRevoke.save();
+  await authService.revokeRefreshToken(refreshTokenToRevoke);
 
   res.status(204).json({
     status: 'success',
@@ -300,17 +240,19 @@ exports.revokeToken = asyncCatch(async (req, res, next) => {
 });
 
 exports.getAttachUser = asyncCatch(async (req, res, next) => {
-  const token = extractToken(req.headers);
+  const token = authService.extractToken(req.headers);
   if (!token) {
     return next();
   }
+
   //catch and ignore error from decode so invalid token defaults to no user
   let decodedUser;
   try {
-    decodedUser = await decodeToken(token);
+    decodedUser = await authService.decodeToken(token);
   } catch (err) {
     return next();
   }
+
   //attach user info to req
   req.user = decodedUser;
   next();
@@ -318,39 +260,26 @@ exports.getAttachUser = asyncCatch(async (req, res, next) => {
 
 exports.protectRoute = asyncCatch(async (req, res, next) => {
   //check for JWT
-  const token = extractToken(req.headers);
+  const token = authService.extractToken(req.headers);
 
   if (!token) {
     return next(new AppError('You are not logged in.', 401));
   }
 
-  const decodedUser = await decodeToken(token);
+  const decodedUser = await authService.decodeToken(token);
 
   //attach user info to req
   req.user = decodedUser;
   next();
 });
 
-exports.authorizeRole = (roles) => {
-  if (typeof roles === 'string') {
-    roles = [roles];
-  }
-
+exports.authorizeRole = (...roles) => {
   return (req, res, next) => {
     const { user } = req;
     if (!user || !roles.includes(user.role)) {
       return next(new AppError('Unauthorized.', 403));
     }
-    next();
-  };
-};
 
-exports.restrictTo = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new AppError('You do not have permission to perform this action.', 403)
-      );
-    }
+    next();
   };
 };
