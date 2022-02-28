@@ -137,7 +137,7 @@ userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
       10
     );
 
-    return jwtTimestamp < formattedTimestamp;
+    return jwtTimestamp < formattedTimestamp + 1000;
   }
 
   return false;
