@@ -702,11 +702,13 @@ describe('bookings', () => {
       const checkoutPromises = createUserRequestPromises(
         users,
         `/api/bookings/checkout-session/${event._id}`,
-        'post',
         {
-          name: (user) => user.name,
-          email: (user) => user.email,
-          tickets,
+          method: 'post',
+          body: {
+            name: (user) => user.name,
+            email: (user) => user.email,
+            tickets,
+          },
         }
       );
 
