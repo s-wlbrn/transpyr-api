@@ -78,29 +78,28 @@ exports.getRefreshToken = async (query, options = {}) => {
   return refreshToken;
 };
 
-exports.revokeRefreshToken = async (token, newToken) => {
-  token.revoked = new Date();
-  if (newToken) token.replacedBy = newToken;
+exports.revokeRefreshToken = async (refreshToken, newRefreshToken) => {
+  refreshToken.revoke(newRefreshToken);
+  await refreshToken.save();
 
-  await token.save();
-
-  return token;
+  return refreshToken;
 };
 
 //Update Password
 const updateUserPassword = async (user, password, passwordConfirm) => {
-  user.password = password;
-  user.passwordConfirm = passwordConfirm;
+  user.updatePassword(password, passwordConfirm);
   await user.save();
+
+  return user;
 };
 exports.updateUserPassword = updateUserPassword;
 
 //Password Reset
 exports.revertPasswordReset = async (user) => {
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-
+  user.clearPasswordResetToken();
   await user.save({ validateBeforeSave: false });
+
+  return user;
 };
 
 exports.hashPasswordResetToken = (token) => {
@@ -110,8 +109,7 @@ exports.hashPasswordResetToken = (token) => {
 };
 
 exports.resetUserPassword = async (user, password, passwordConfirm) => {
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
+  user.clearPasswordResetToken();
 
   await updateUserPassword(user, password, passwordConfirm);
 };

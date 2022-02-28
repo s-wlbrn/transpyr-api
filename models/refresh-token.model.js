@@ -50,6 +50,14 @@ refreshTokenSchema.pre('save', function (next) {
   next();
 });
 
+//METHODS
+refreshTokenSchema.methods.revoke = function (newToken) {
+  this.revoked = new Date();
+  if (newToken) this.replacedBy = newToken;
+
+  return this;
+};
+
 const RefreshToken = mongoose.model('RefreshToken', refreshTokenSchema);
 
 module.exports = RefreshToken;

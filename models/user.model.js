@@ -143,6 +143,13 @@ userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
   return false;
 };
 
+userSchema.methods.updatePassword = function (password, passwordConfirm) {
+  this.password = password;
+  this.passwordConfirm = passwordConfirm;
+
+  return this;
+};
+
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
@@ -154,6 +161,13 @@ userSchema.methods.createPasswordResetToken = function () {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
+};
+
+userSchema.methods.clearPasswordResetToken = function () {
+  this.passwordResetToken = undefined;
+  this.passwordResetExpires = undefined;
+
+  return this;
 };
 
 const User = mongoose.model('User', userSchema);
