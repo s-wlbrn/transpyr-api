@@ -4,6 +4,16 @@ const crypto = require('crypto');
 const User = require('../models/user.model');
 const RefreshToken = require('../models/refresh-token.model');
 const AppError = require('../libs/AppError');
+const Email = require('./email.service');
+
+//Emails
+exports.sendWelcomeEmail = async (newUser, url) => {
+  await new Email(newUser, url).sendWelcome();
+};
+
+exports.sendPasswordResetEmail = async (user, url) => {
+  await new Email(user, url).sendPasswordReset();
+};
 
 //JWT
 exports.extractToken = (headers) => {

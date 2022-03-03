@@ -1,6 +1,5 @@
 const authService = require('../services/auth.service');
 const userService = require('../services/user.service');
-const Email = require('../services/email.service');
 const AppError = require('../libs/AppError');
 const asyncCatch = require('../libs/asyncCatch');
 
@@ -55,7 +54,7 @@ exports.signup = asyncCatch(async (req, res, next) => {
 
   //Send welcome email
   const url = `${req.protocol}://${process.env.FRONTEND_HOST}/events/create`;
-  await new Email(newUser, url).sendWelcome();
+  await authService.sendWelcomeEmail(newUser, url);
 
   await createSendToken(newUser, 201, req, res);
 });
@@ -114,7 +113,7 @@ exports.forgotPassword = async (req, res, next) => {
   //email user
   try {
     const resetUrl = `${req.protocol}://${process.env.FRONTEND_HOST}/users/forgot-password/${resetToken}`;
-    await new Email(user, resetUrl).sendPasswordReset();
+    await authService.sendPasswordResetEmail(user, resetUrl);
   } catch (err) {
     await authService.revertPasswordReset(user);
 
