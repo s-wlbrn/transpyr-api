@@ -19,7 +19,11 @@ const createAndLogin = (overrides) => async (otherOverrides) => {
 
   const userData = {
     token: response.body.token,
-    user: { ...response.body.data.user, password: user.password },
+    user: {
+      ...response.body.data.user,
+      password: user.password,
+      id: String(user._id),
+    },
     refreshToken,
   };
 
