@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 const { Stripe } = require('stripe');
 const testApp = require('../test/testApp');
 const Booking = require('../models/booking.model');
-const Event = require('../models/event.model');
-const User = require('../models/user.model');
 const Email = require('../services/email.service');
 const {
   createAdminAndLogin,
@@ -15,66 +13,40 @@ const {
   getTestEmails,
 } = require('../test/helpers/emailHelpers');
 const createUserRequestPromises = require('../test/helpers/createUserRequestPromises');
+const {
+  setupUsers,
+  setupEvents,
+  setupBookings,
+} = require('../test/helpers/dbHelpers');
+const {
+  mockBookings,
+  mockUsers,
+  mockEvents,
+  mockTickets,
+} = require('../test/mock-data/mockData');
 
 const setupEventAndOrganizer = async ({
   login = false,
   overrides = {},
 } = {}) => {
-  const organizer = await User.create({
-    name: 'Test Organizer',
-    email: 'test@organizer.com',
-    password: 'testpassword',
-    passwordConfirm: 'testpassword',
-  });
-  const defaultEvent = {
-    name: 'Test Event',
-    organizer: organizer._id,
-    dateTimeStart: new Date(Date.now() + 3600000),
-    dateTimeEnd: new Date(Date.now() + 7200000),
-    type: 'Lecture',
-    category: 'Music',
-    description: 'Test description',
-    totalCapacity: 10,
-    feePolicy: 'absorbFee',
-    published: true,
-    ticketTiers: [
-      {
-        tierName: 'General Admission',
-        tierDescription: 'General Admission',
-        limitPerCustomer: 1,
-        online: true,
-        price: 100,
-        capacity: 10,
-      },
-    ],
-  };
-  const eventData = { ...defaultEvent, ...overrides };
-  const event = await Event.create(eventData);
+  let organizer = {};
+  let token = '';
 
-  let token;
   if (login) {
-    const response = await testApp().post('/api/users/signin').send({
-      email: organizer.email,
-      password: 'testpassword',
-    });
-    ({ token } = response.body);
+    const loggedInUser = await createUserAndLogin();
+    organizer = loggedInUser.user;
+    ({ token } = loggedInUser);
+  } else {
+    organizer = await setupUsers(mockUsers(1));
   }
+
+  const event = await setupEvents(
+    mockEvents(1, {
+      overrides: { organizer: String(organizer._id), ...overrides },
+    })
+  );
+
   return { organizer, event, token };
-};
-
-const setupBookings = async (documents) => {
-  const formattedDocuments = documents.map((doc) => {
-    return {
-      insertOne: {
-        document: {
-          ...doc,
-        },
-      },
-    };
-  });
-
-  const bookings = await Booking.bulkWrite(formattedDocuments);
-  return bookings;
 };
 
 describe('refund requests', () => {
@@ -92,77 +64,67 @@ describe('refund requests', () => {
         Email.prototype,
         'sendCancelationRequestOrganizer'
       );
+
       //create user
       const { user, token } = await createUserAndLogin();
+
       //create events
       const { organizer, event } = await setupEventAndOrganizer();
-      //create bookings for user, two active, one cancelled, one for different event, one with existing refund request, one not belonging to user
-      const orderId = mongoose.Types.ObjectId();
-      const existingRequestBookingId = mongoose.Types.ObjectId();
-      const existingRequestId = mongoose.Types.ObjectId();
-      const testBookings = await setupBookings([
-        {
-          orderId,
-          name: user.name,
-          email: user.email,
-          user: user._id,
-          event: event._id,
-          ticket: mongoose.Types.ObjectId(),
-          price: 20,
-        },
-        {
-          orderId,
-          name: user.name,
-          email: user.email,
-          user: user._id,
-          event: event._id,
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: user.name,
-          email: user.email,
-          user: user._id,
-          event: event._id,
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-          active: false,
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: user.name,
-          email: user.email,
-          user: user._id,
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-        },
-        {
-          orderId: existingRequestBookingId,
-          name: user.name,
-          email: user.email,
-          user: user._id,
-          event: event._id,
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-          refundRequest: {
-            requestId: existingRequestId,
-            resolved: false,
-          },
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Other User',
-          email: 'other@user.com',
-          user: mongoose.Types.ObjectId(),
-          event,
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-        },
-      ]);
-      const selectedIdsArray = Object.values(testBookings.insertedIds);
 
+      //create user bookings, two active, one cancelled, one for different event, one with existing refund request, one not belonging to user
+      const orderId = mongoose.Types.ObjectId().toString();
+      const existingRequestBookingId = mongoose.Types.ObjectId().toString();
+      const existingRequestId = mongoose.Types.ObjectId().toString();
+      const defaultBookingSettings = {
+        name: user.name,
+        email: user.email,
+        user: user._id,
+        event: event.id,
+      };
+      const testBookings = await setupBookings(
+        mockBookings(6, [
+          //two active
+          {
+            overrides: {
+              ...defaultBookingSettings,
+              orderId,
+            },
+          },
+          {
+            overrides: {
+              ...defaultBookingSettings,
+              orderId,
+            },
+          },
+          //canceled
+          {
+            overrides: {
+              ...defaultBookingSettings,
+              active: false,
+            },
+          },
+          //different event
+          {
+            overrides: {
+              ...defaultBookingSettings,
+              event: mongoose.Types.ObjectId().toString(),
+            },
+          },
+          //existing refund request
+          {
+            overrides: {
+              ...defaultBookingSettings,
+              orderId: existingRequestBookingId,
+              refundRequest: {
+                requestId: existingRequestId,
+                resolved: false,
+              },
+            },
+          },
+        ])
+      );
+
+      const selectedIdsArray = Object.values(testBookings.insertedIds);
       const response = await testApp()
         .patch(`/api/bookings/refund-requests/event/${event._id}`)
         .send({ selectedIdsArray })
@@ -171,6 +133,7 @@ describe('refund requests', () => {
 
       //expect email sent
       expect(refundMailer).toHaveBeenCalledTimes(1);
+
       //get email from mailtrap
       const testEmails = await getTestEmails();
       expect(testEmails.length).toBe(1);
@@ -179,6 +142,7 @@ describe('refund requests', () => {
 
       //get all bookings, loop through
       const bookings = await Booking.find();
+
       bookings.forEach((booking) => {
         //for booking with existing refund request, expect refund request to be unchanged
         if (
@@ -203,29 +167,23 @@ describe('refund requests', () => {
       //create free event
       const { event } = await setupEventAndOrganizer({
         overrides: {
-          ticketTiers: [
-            {
-              tierName: 'General Admission',
-              tierDescription: 'General Admission',
-              limitPerCustomer: 1,
-              online: true,
-              price: 0,
-              capacity: 10,
-            },
-          ],
+          ticketTiers: mockTickets(1, { overrides: { price: 0 } }),
         },
       });
 
       const { user, token } = await createUserAndLogin();
-      const booking = await Booking.create({
-        orderId: mongoose.Types.ObjectId(),
-        name: user.name,
-        email: user.email,
-        user: user._id,
-        event: event._id,
-        ticket: event.ticketTiers[0]._id,
-        price: 0,
-      });
+      const booking = await setupBookings(
+        mockBookings(1, {
+          overrides: {
+            name: user.name,
+            email: user.email,
+            user: user.id,
+            event: event.id,
+            ticket: event.ticketTiers[0].id,
+            price: 0,
+          },
+        })
+      );
 
       //request
       const selectedIdsArray = [booking._id];
@@ -276,35 +234,29 @@ describe('refund requests', () => {
     });
 
     const createTestBookings = async (event, requestId) => {
-      const orderId = mongoose.Types.ObjectId();
-      return await setupBookings([
-        {
-          orderId,
-          name: 'Tester',
-          email: 'tester@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId,
-            resolved: false,
-          },
+      const orderId = String(mongoose.Types.ObjectId());
+      const defaultBookingInfo = {
+        orderId,
+        name: 'Tester',
+        email: 'tester@test.com',
+        event: event.id,
+        ticket: event.ticketTiers[0].id,
+        price: event.ticketTiers[0].price,
+        refundRequest: {
+          requestId: String(requestId),
+          resolved: false,
         },
-        {
-          orderId,
-          name: 'Tester',
-          email: 'tester@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId,
-            resolved: false,
+      };
+      return await setupBookings(
+        mockBookings(2, [
+          {
+            overrides: defaultBookingInfo,
           },
-        },
-      ]);
+          {
+            overrides: defaultBookingInfo,
+          },
+        ])
+      );
     };
 
     it('accepts request and cancels bookings if user is organizer', async () => {
@@ -441,57 +393,53 @@ describe('refund requests', () => {
 
   describe('getting requests by event', () => {
     const createTestBookings = async (event) => {
-      const testBookings = await setupBookings([
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester One',
-          email: 'testerone@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester Two',
-          email: 'testertwo@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId: mongoose.Types.ObjectId(),
-            resolved: false,
+      const defaultBookingInfo = {
+        event: event.id,
+        ticket: event.ticketTiers[0].id,
+        price: event.ticketTiers[0].price,
+      };
+
+      const testBookings = await setupBookings(
+        mockBookings(4, [
+          {
+            overrides: {
+              ...defaultBookingInfo,
+            },
           },
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester Three',
-          email: 'testerthree@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId: mongoose.Types.ObjectId(),
-            resolved: true,
-            status: 'accepted',
+          {
+            overrides: {
+              ...defaultBookingInfo,
+              refundRequest: {
+                requestId: String(mongoose.Types.ObjectId()),
+                resolved: false,
+              },
+            },
           },
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester Three',
-          email: 'testerthree@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 20,
-          refundRequest: {
-            requestId: mongoose.Types.ObjectId(),
-            resolved: false,
+          {
+            overrides: {
+              ...defaultBookingInfo,
+              name: 'Tester Three',
+              email: 'testerthree@test.com',
+              refundRequest: {
+                requestId: String(mongoose.Types.ObjectId()),
+                resolved: true,
+                status: 'accepted',
+              },
+            },
           },
-        },
-      ]);
+          {
+            overrides: {
+              name: 'Tester Three',
+              email: 'testerthree@test.com',
+              refundRequest: {
+                requestId: String(mongoose.Types.ObjectId()),
+                resolved: false,
+              },
+            },
+          },
+        ])
+      );
+
       return testBookings;
     };
 
@@ -513,21 +461,18 @@ describe('refund requests', () => {
       responses.forEach(({ response }) => {
         expect(response.status).toBe(200);
         expect(response.body.data.length).toBe(1);
-        expect(response.body.data[0].name).toBe('Tester Two');
       });
     });
 
     it('returns 404 if no requests for event', async () => {
       const { event, token } = await setupEventAndOrganizer({ login: true });
-      await Booking.create({
-        orderId: mongoose.Types.ObjectId(),
-        name: 'Tester',
-        email: 'test@test.com',
-        user: mongoose.Types.ObjectId(),
-        event: event._id,
-        ticket: event.ticketTiers[0]._id,
-        price: event.ticketTiers[0].price,
-      });
+      await setupBookings(
+        mockBookings(1, {
+          event: event.id,
+          ticket: event.ticketTiers[0].id,
+          price: event.ticketTiers[0].price,
+        })
+      );
 
       const response = await testApp()
         .get(`/api/bookings/refund-requests/event/${event._id}`)
@@ -564,61 +509,60 @@ describe('refund requests', () => {
   describe('getting requests by requestId', () => {
     //create bookings, one with request, three with same request id, one of them resolved, one of them different event
     const createTestBookings = async (event, requestId) => {
-      const testBookings = await setupBookings([
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester One',
-          email: 'testerone@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId: mongoose.Types.ObjectId(),
-            resolved: false,
+      requestId = String(requestId);
+      const defaultBookingInfo = {
+        event: event.id,
+        ticket: event.ticketTiers[0].id,
+        price: event.ticketTiers[0].price,
+      };
+      const testBookings = await setupBookings(
+        mockBookings(4, [
+          {
+            overrides: {
+              ...defaultBookingInfo,
+              refundRequest: {
+                requestId: String(mongoose.Types.ObjectId()),
+                resolved: false,
+              },
+            },
           },
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester Two',
-          email: 'testertwo@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId,
-            resolved: false,
+          {
+            overrides: {
+              ...defaultBookingInfo,
+              name: 'Tester',
+              email: 'tester@test.com',
+              refundRequest: {
+                requestId,
+                resolved: false,
+              },
+            },
           },
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester Two',
-          email: 'testerthree@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId: mongoose.Types.ObjectId(),
-            resolved: true,
-            status: 'accepted',
+          {
+            overrides: {
+              refundRequest: {
+                ...defaultBookingInfo,
+                name: 'Tester',
+                email: 'tester@test.com',
+                requestId: String(mongoose.Types.ObjectId()),
+                resolved: true,
+                status: 'accepted',
+              },
+            },
           },
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Tester Two',
-          email: 'testertwo@test.com',
-          user: mongoose.Types.ObjectId(),
-          event: event._id,
-          ticket: event.ticketTiers[0]._id,
-          price: event.ticketTiers[0].price,
-          refundRequest: {
-            requestId,
-            resolved: false,
+          {
+            overrides: {
+              ...defaultBookingInfo,
+              name: 'Tester',
+              email: 'tester@test.com',
+              refundRequest: {
+                requestId,
+                resolved: false,
+              },
+            },
           },
-        },
-      ]);
+        ])
+      );
+
       return testBookings;
     };
 
@@ -1164,38 +1108,32 @@ describe('bookings', () => {
   });
 
   describe('get all bookings', () => {
-    const createTestBookings = async () =>
-      await setupBookings([
+    const createTestBookings = async () => {
+      const mocks = mockBookings(3, [
         {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Test Tester',
-          email: 'test@tester.com',
-          user: mongoose.Types.ObjectId(),
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 20,
+          overrides: {
+            user: undefined,
+            price: 0,
+          },
         },
         {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Guest Tester',
-          email: 'guest@tester.com',
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 0,
+          overrides: {
+            price: 10,
+          },
         },
         {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Other User',
-          email: 'other@user.com',
-          user: mongoose.Types.ObjectId(),
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
+          overrides: {
+            price: 20,
+          },
         },
       ]);
+      await setupBookings(mocks);
+
+      return mocks;
+    };
 
     it('returns bookings to admin', async () => {
-      await createTestBookings();
+      const testBookings = await createTestBookings();
       const { token } = await createAdminAndLogin();
 
       const response = await testApp()
@@ -1205,7 +1143,7 @@ describe('bookings', () => {
       expect(response.body.data).toHaveLength(3);
       //filter
       const filteredResponse = await testApp()
-        .get('/api/bookings?email=test@tester.com')
+        .get(`/api/bookings?email=${testBookings[0].email}`)
         .auth(token, { type: 'bearer' });
       expect(filteredResponse.status).toBe(200);
       expect(filteredResponse.body.data).toHaveLength(1);
@@ -1275,36 +1213,30 @@ describe('bookings', () => {
 
   describe('own bookings', () => {
     it('responds with all user bookings', async () => {
+      const testEvent = await setupEvents(mockEvents(1));
       const { user, token } = await createUserAndLogin();
-      await setupBookings([
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Test Tester',
-          email: 'test@tester.com',
-          user: user._id,
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 20,
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Test Tester',
-          email: 'test@tester.com',
-          user: user._id,
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-        },
-        {
-          orderId: mongoose.Types.ObjectId(),
-          name: 'Other User',
-          email: 'other@user.com',
-          user: mongoose.Types.ObjectId(),
-          event: mongoose.Types.ObjectId(),
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-        },
-      ]);
+      await setupBookings(
+        mockBookings(3, [
+          {
+            overrides: {
+              name: user.name,
+              email: user.email,
+              user: user.id,
+              event: testEvent.id,
+              ticket: testEvent.ticketTiers[0].id,
+            },
+          },
+          {
+            overrides: {
+              name: user.name,
+              email: user.email,
+              user: user.id,
+              event: testEvent.id,
+              ticket: testEvent.ticketTiers[0].id,
+            },
+          },
+        ])
+      );
 
       const response = await testApp()
         .get('/api/bookings/me')
@@ -1312,7 +1244,12 @@ describe('bookings', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.length).toBe(2);
-      //probably need to test for populated event and data
+
+      //populated event and ticketdata
+      expect(response.body.data[0].event.name).toBe(testEvent.name);
+      expect(response.body.data[0].ticketData.name).toBe(
+        testEvent.ticketTiers[0].name
+      );
     });
 
     it('returns unauthorized to guest', async () => {
@@ -1323,29 +1260,21 @@ describe('bookings', () => {
 
   describe('by order ID', () => {
     it('responds with bookings of matching order ID', async () => {
-      const orderId = mongoose.Types.ObjectId();
-      const user = mongoose.Types.ObjectId();
-      const event = mongoose.Types.ObjectId();
-      await setupBookings([
-        {
-          orderId,
-          name: 'Test Tester',
-          email: 'test@tester.com',
-          user,
-          event,
-          ticket: mongoose.Types.ObjectId(),
-          price: 20,
-        },
-        {
-          orderId,
-          name: 'Test Tester',
-          email: 'test@tester.com',
-          user,
-          event,
-          ticket: mongoose.Types.ObjectId(),
-          price: 10,
-        },
-      ]);
+      const orderId = String(mongoose.Types.ObjectId());
+      await setupBookings(
+        mockBookings(2, [
+          {
+            overrides: {
+              orderId,
+            },
+          },
+          {
+            overrides: {
+              orderId,
+            },
+          },
+        ])
+      );
 
       const response = await testApp().get(`/api/bookings/order/${orderId}`);
       expect(response.statusCode).toBe(200);
