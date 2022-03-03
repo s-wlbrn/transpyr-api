@@ -134,6 +134,20 @@ describe('Authorization', () => {
         );
       }
     );
+
+    it('returns 400 when account with email already exists', async () => {
+      const { user } = await createUserAndLogin();
+
+      const response = await testApp().post('/api/users/signup').send({
+        name: 'new user',
+        email: user.email,
+        password: 'password',
+        passwordConfirm: 'password',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toEqual(expect.stringMatching(/email/i));
+    });
   });
 
   describe('signing in', () => {
