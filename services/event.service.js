@@ -12,7 +12,20 @@ exports.processEventPhoto = async (buffer) => {
 };
 
 //Queries
-exports.getEventById = async (id) => Event.findById(id);
+exports.getEventById = async (id, options = {}) => {
+  const query = Event.findById(id);
+
+  if (options.organizer) {
+    query.select('organizer');
+    query.populate({
+      path: 'organizer',
+      select: 'name email',
+    });
+  }
+  const event = await query;
+
+  return event;
+};
 
 //Helpers
 exports.authorizeUnpublishedEvent = (req, event) => {

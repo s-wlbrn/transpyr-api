@@ -1,19 +1,12 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const mongoose = require('mongoose');
-const Event = require('../models/event.model');
 const Booking = require('../models/booking.model');
 const Email = require('./email.service');
 const APIFeatures = require('../libs/apiFeatures');
 
 //Emails
-exports.sendRefundEmailOrganizer = async (req, requestId) => {
-  const event = await Event.findById(req.params.id)
-    .select('organizer')
-    .populate('organizer');
-  await new Email(
-    event.organizer,
-    `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/refund-requests/${requestId}`
-  ).sendCancelationRequestOrganizer();
+exports.sendRefundEmailOrganizer = async (url, organizer, requestId) => {
+  await new Email(organizer, url).sendCancelationRequestOrganizer();
 };
 
 exports.sendRefundResolvedEmails = async (
@@ -40,12 +33,9 @@ exports.sendRefundResolvedEmails = async (
   }
 };
 
-exports.sendBookingSuccessEmail = async (name, email, event, user) => {
+exports.sendBookingSuccessEmail = async (name, email, url, user) => {
   try {
-    const mailer = await new Email(
-      { name, email },
-      `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${event}`
-    );
+    const mailer = await new Email({ name, email }, url);
     if (user) {
       await mailer.sendBookingSuccess();
     } else {
@@ -71,7 +61,10 @@ exports.getBookings = async (query, { activeOnly = true, userId }) => {
   return bookings;
 };
 
-exports.getBookingById = async (id) => Booking.findById(id);
+exports.getBookingById = async (id) => {
+  const booking = await Booking.findById(id);
+  return booking;
+};
 
 exports.getUserBookedEventsWithTotals = async (userId) => {
   const bookings = await Booking.aggregate([

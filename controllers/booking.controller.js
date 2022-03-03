@@ -127,7 +127,11 @@ exports.requestRefund = asyncCatch(async (req, res, next) => {
   );
 
   //get event and send email to organizer
-  await bookingService.sendRefundEmailOrganizer(req, requestId);
+  const { organizer } = await eventService.getEventById(req.params.id, {
+    organizer: true,
+  });
+  const url = `${req.protocol}://${process.env.FRONTEND_HOST}/bookings/refund-requests/${requestId}`;
+  await bookingService.sendRefundEmailOrganizer(url, organizer, requestId);
 
   res.status(204).json({
     status: 'success',
@@ -346,10 +350,12 @@ exports.webhookCheckout = asyncCatch(async (req, res, next) => {
     const session = await bookingService.retrieveStripeCheckoutSession(event);
 
     await bookingService.createCheckoutBooking(session);
+
+    const url = `${process.env.FRONTEND_HOST}/bookings/my-bookings/event/${session.client_reference_id}`;
     await bookingService.sendBookingSuccessEmail(
       session.metadata.name,
       session.customer_email,
-      session.client_reference_id,
+      url,
       session.metadata.user
     );
   }
