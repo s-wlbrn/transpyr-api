@@ -134,7 +134,6 @@ const eventSchema = new mongoose.Schema(
       required: [true, 'An event must have a description.'],
     },
     convertedDescription: String,
-    summary: String,
     ticketTiers: {
       type: [ticketTiersSchema],
       required: [true, 'An event must have ticket tiers.'],
@@ -235,7 +234,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       default: 'English',
     },
-    slug: String,
     online: Boolean,
     canceled: {
       type: Boolean,
@@ -332,12 +330,6 @@ eventSchema.pre(['find', 'findOne'], function (next) {
       active: true,
     },
   });
-  next();
-});
-
-//Create slug
-eventSchema.pre('save', function (next) {
-  this.slug = slugify(this.name, { lower: true });
   next();
 });
 
