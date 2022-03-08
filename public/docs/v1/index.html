@@ -50,6 +50,38 @@
               </ul>
             </li>
             <li>
+              <a href="#resources">
+                <h3>Resources</h3>
+              </a>
+              <ul>
+                <li>
+                  <a href="#resource-event">
+                    <h4>Event</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#resource-ticket">
+                    <h4>TicketTier</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#resource-user">
+                    <h4>User</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#resource-booking">
+                    <h4>Booking</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#resource-refund">
+                    <h4>RefundRequest</h4>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li>
               <a href="#api-root">
                 <h3>API Root</h3>
               </a>
@@ -118,8 +150,128 @@
                 </li>
               </ul>
             </li>
-            <li><a href="#users"><h3>Users</h3></a></li>
-            <li><a href="#bookings"><h3>Bookings</h3></a></li>
+            <li>
+              <a href="#users">
+                <h3>Users</h3>
+              </a>
+              <ul>
+                <li>
+                  <a href="#sign-in">
+                    <h4>Sign in</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#sign-up">
+                    <h4>Sign up</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#refresh-token">
+                    <h4>Refresh token</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#revoke-token">
+                    <h4>Revoke token</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#forgot-password">
+                    <h4>Forgot password</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#reset-password">
+                    <h4>Reset password</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-profile">
+                    <h4>Get public user profile</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#update-password">
+                    <h4>Update password</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-me">
+                    <h4>Get own user</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#update-me">
+                    <h4>Update own user</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#deactivate-me">
+                    <h4>Deactivate own user</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-all-users">
+                    <h4>Get all users</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-user">
+                    <h4>Get one user</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#update-user">
+                    <h4>Update user</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#delete-user">
+                    <h4>Delete user</h4>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#bookings"><h3>Bookings</h3></a>
+              <ul>
+                <li>
+                  <a href="#create-checkout">
+                    <h4>Create Stripe checkout session</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-order">
+                    <h4>Get order bookings</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-my-bookings">
+                    <h4>Get own bookings</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-event-refund-requests">
+                    <h4>Get all refund requests for event</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-refund-request">
+                    <h4>Get refund request</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-all-bookings">
+                    <h4>Get all bookings</h4>
+                  </a>
+                </li>
+                <li>
+                  <a href="#get-booking">
+                    <h4>Get booking</h4>
+                  </a>
+                </li>
+              </ul>
+            </li>
         </ul>
         </div>
       </nav>
@@ -129,7 +281,7 @@
             <h2>Overview</h2>
           </header>
           <section>
-            <h3>About</h3>
+            <header><h3>About</h3></header>
             <p>The Transpyr back-end api is a Node/Express REST API that handles Transpyr's user, event, and booking operations.</p>
             <p>The API is designed to be consumed by the front-end application, which is written in React.js.</p>
           </section>
@@ -139,18 +291,17 @@
             <h2>Setup</h2>
           </header>
           <section class="starting-the-server">
-            <h3>Starting the server</h3>
+            <header><h3>Starting the server</h3></header>
             <p><code>npm start</code> starts the server.</p>
             <p><code>npm run start-dev</code> runs the server with nodemon.</p>
           </section>
           <section id="config">
-            <h3>Configuration</h3>
+          <header><h3>Configuration</h3></header>
             <p>The following environment variables are required to run the API:</p>
-            <details>
+            <details class="ConfigSection__Environment">
               <summary>
                 <code>See Environment Variables</code>
               </summary>
-              
               <h4>Server config</h4>
               <ul>
                 <li>
@@ -263,6 +414,158 @@
                 </li>
               </ul>
             </details>
+          </section>
+        </section>
+        <section class="MainSection" id="resources">
+          <header class="MainSection__Header" id="resources">
+            <h2>Resources</h2>
+          </header>
+          <section class="ResourceSection" id="resource-event">
+            <header><h3>Event</h3></header>
+            <details class="ResourceSection__ResourceDetails">
+              <summary>
+                Details
+              </summary>
+              <ul>
+                <li><code>id</code>: String. ID of event.</li>
+                <li><code>name</code>: String. Name of the event.</li>
+                <li>
+                  <code>type</code>: String. Format of the event.
+                  <ul>
+                    <li>Allowed values: Lecture, Class, Performance, Social, Workshop, Conference, Convention, Expo, Game, Rally, Screening, Tour</li>
+                  </ul>
+                </li>
+                <li>
+                  <code>category</code>: String. Category of event.
+                  <ul>
+                    <li>Allowed values: Business, Food, Health & Lifestyle, Music, Vehicle, Charity, Community, Fashion, Film, Home, Hobbies, Performing & Visual Arts, Politics, Spirituality, School, Science & Technology, Holiday, Sports & Fitness, Travel, Outdoor & Recreation, Other</li> 
+                  </ul>
+                </li>
+                <li><code>description</code>: String. Description of the event in Markdown.</li>
+                <li><code>convertedDescription</code>: String. Generated copy of event description, sanitized and converted to HTML</li>
+                <li><code>ticketTiers</code>: <a href="#resource-ticket">TicketTier[]</a>. Array of event ticket types.</li>
+                <li><code>photo</code>: String. Filename of event photo.</li>
+                <li><code>dateTimeStart</code>: Date. Start date and time of event.</li>
+                <li><code>dateTimeEnd</code>: Date. End date and time of event.</li>
+                <li><code>createdAt</code>: Date. Creation date and time of event.</li>
+                <li><code>organizer</code>: String. ID of event organizer.</li>
+                <li><code>address</code>: String. Optional event address if the event is in-person.</li>
+                <li>
+                  <code>location</code>: Location.
+                  <ul>
+                    <li><code>type</code>: String. Value must be "Point".</li>
+                    <li><code>coordinates</code>: Array. Location coordinates expressed [longitude, latitude].</li>
+                </li>
+                <li><code>totalCapacity</code>: Number. Total number of available tickets for event.</li>
+                <li><code>totalBookings</code>: Number. Total number of current bookings for event.</li>
+                <li>
+                  <code>feePolicy</code>: String. Specifies whether booking fees should be covered by the organizer or passed to attendees.
+                  <ul>
+                    <li>Allowed values: absorbFee, passFee</li>
+                  </ul>
+                </li>
+                <li><code>refundPolicy</code>: String. Optional refund policy for event.</li>
+                <li><code>language</code>: String. Language event is presented in.</li>
+                <li><code>online</code>: Boolean. Specifies if event includes online attendance.</li>
+                <li><code>canceled</code>: Boolean. Specifies if event is canceled.</li>
+                <li><code>published</code>: Boolean. Specifies if event is published.</li>
+                <li><code>soldOut</code>: Boolean. Specifies if event is sold out.</li>
+              </ul>
+            </details>
+          </section>
+          <section class="ResourceSection" id="resource-ticket">
+            <header><h3>TicketTier</h3></header>
+            <details class="ResourceSection__ResourceDetails">
+              <summary>
+                Details
+              </summary>
+              <ul>
+                <li><code>id</code>: String. ID of ticket.</li>
+                <li><code>tierName</code>: String. Ticket name.</li>
+                <li><code>tierDescription</code>: String. Ticket description.</li>
+                <li><code>price</code>: Number. Ticket price.</li>
+                <li><code>online</code>: Boolean. Specifies if ticket is for online attendance.</li>
+                <li><code>capacity</code>: Number. Number of tickets available.</li>
+                <li><code>limitPerCustomer</code>: Number. Maximum number of bookings allowed per order.</li>
+                <li><code>canceled</code>: Boolean. Specifies if ticket is canceled.</li>
+                <li><code>numBookings</code>: Number. Current number of bookings for ticket.</li>
+                <li><code>ticketSoldOut</code>: Boolean. Specifies if ticket is sold out.</li>
+              </ul>
+            </details>
+          </section>
+          <section class="ResourceSection" id="resource-user">
+            <header><h3>User</h3></header>
+            <details class="ResourceSection__ResourceDetails">
+              <summary>
+                Details
+              </summary>
+              <ul>
+                <li><code>id</code>: String. ID of user.</li>
+                <li><code>name</code>: String. The name of the user.</li>
+                <li><code>email</code>: String. The email address of the user.</li>
+                <li>
+                  <code>password</code>: String. Hashed password of the user.
+                  <ul>
+                    <li>This field is not accessible by any endpoint.</li>
+                  </ul>
+                </li>
+                <li><code>createdAt</code>: Date. Date and time of user creation.</li>
+                <li><code>photo</code>: String. Filename of user photo.</li>
+                <li><code>tagline</code>: String. Short introduction of the user.</li>
+                <li><code>bio</code>: String. A longer description of the user.</li>
+                <li><code>interests</code>: String. A description of the user's interests.</li>
+                <li><code>favorites</code>: String[]. An array of event IDs belonging to the user's favorites.</li>
+                <li><code>privateFavorites</code>: Boolean. Specifies if the user's favorites are sent with their public profile.</li>
+                <li><code>role</code>: String. Specifies if the user is an admin or regular user.</li>
+                <li><code>active</code>: Boolean. Specifies if user is active.</li>
+                <li><code>passwordChangedAt</code>: Date. The date and time of the user's last password change.</li>
+                <li><code>passwordResetToken</code>: String. Hashed password reset token.</li>
+                <li><code>passwordResetExpires</code>: Date. Date and time user's password reset token expires.</li>
+              </ul>
+            </details>
+          </section>
+          <section class="ResourceSection" id="resource-booking">
+            <header><h3>Booking</h3></header>
+            <details class="ResourceSection__ResourceDetails">
+              <summary>
+                Details
+              </summary>
+              <ul>
+                <li><code>id</code>: String. ID of booking.</li>
+                <li><code>orderId</code>: String. ID of order the booking is a part of.</li>
+                <li><code>name</code>: String. Name associated with the booking.</li>
+                <li><code>email</code>: String. Email associated with the booking.</li>
+                <li><code>user</code>: String. ID of user optionally associated with the booking.</li>
+                <li><code>event</code>: String. ID of booked event.</li>
+                <li><code>ticket</code>: String. ID of booked event ticket type.</li>
+                <li><code>price</code>: Number. Price of the ticket at the time of booking.</li>
+                <li><code>createdAt</code>: Date. Date and time of booking creation.</li>
+                <li><code>paid</code>: Boolean. Specifies if booking has been paid for.</li>
+                <li><code>active</code>: Boolean. Specifies if booking is active or canceled.</li>
+                <li><code>refundRequest</code>: <a href="#resource-refund">RefundRequest</a>. Contains an associated refund request if applicable.</li> 
+              </ul>
+            </details>
+          </section>
+          <section class="ResourceSection" id="resource-refund">
+            <header><h3>RefundRequest</h3></header>
+            <details class="ResourceSection__ResourceDetails">
+              <summary>
+                Details
+              </summary>
+              <ul>
+                <li><code>id</code>: String. UUID of the unique request document.</li>
+                <li><code>requestId</code>: String. ID of the refund request that the request belongs to.</li>
+                <li><code>createdAt</code>: Date. Date and time of refund request creation.</li>
+                <li><code>resolved</code>: Boolean. Specifies if a decision has been made about the request.</li>
+                <li>
+                  <code>status</code>: String. The status of a resolved refund request.
+                  <ul>
+                    <li>Allowed values: accepted, rejected</li>
+                </li>
+                <li><code>reason</code>: String. Optional reason for the refund request.</li>
+                <li><code>refundProcessed</code>: Boolean. Specifies if the refund payment has processed (not implemented).</li>
+              </ul>
+            </details>  
           </section>
         </section>
         <section class="MainSection" id="api-root">
@@ -1074,18 +1377,10 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="event-admin-only">
             <header class="EndpointSection__Header">
               <h3>Admin-only actions</h3>
             </header>
-            <div class="EndpointSection__Endpoint">
-              <span class="EndpointSection__HttpMethod--get">
-                GET
-              </span>
-              <code class="EndpointSection__URL">
-                /events
-              </code>
-            </div>
             <p>Users with the admin role can use normal routes with extra functionality.</p>
             <ul>
               <li><a href="#get-events">Get Events</a> returns all events, published and unpublished.</li>
@@ -1096,11 +1391,11 @@
         </section>
         </section>
 
-        <section class="MainSection">
+        <section class="MainSection" id="users">
           <header class="MainSection__Header">
             <h2>Users</h2>
           </header>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="sign-in">
             <header class="EndpointSection__Header">
               <h3>Sign in</h3>
             </header>
@@ -1161,7 +1456,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="sign-up">
             <header class="EndpointSection__Header">
               <h3>Sign up</h3>
             </header>
@@ -1263,7 +1558,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="refresh-token">
             <header class="EndpointSection__Header">
               <h3>Refresh token</h3>
             </header>
@@ -1302,7 +1597,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="revoke-token">
             <header class="EndpointSection__Header">
               <h3>Revoke token</h3>
             </header>
@@ -1335,7 +1630,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="forgot-password">
             <header class="EndpointSection__Header">
               <h3>Forgot password</h3>
             </header>
@@ -1381,7 +1676,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="reset-password">
             <header class="EndpointSection__Header">
               <h3>Reset password</h3>
             </header>
@@ -1454,7 +1749,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-profile">
             <header class="EndpointSection__Header">
               <h3>Get public user profile</h3>
             </header>
@@ -1531,7 +1826,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="update-password">
             <header class="EndpointSection__Header">
               <h3>Update password</h3>
             </header>
@@ -1597,7 +1892,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-me">
             <header class="EndpointSection__Header">
               <h3>Get own user</h3>
             </header>
@@ -1631,7 +1926,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="update-me">
             <header class="EndpointSection__Header">
               <h3>Update own user</h3>
             </header>
@@ -1759,7 +2054,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="deactivate-me">
             <header class="EndpointSection__Header">
               <h3>Deactivate own user</h3>
             </header>
@@ -1781,7 +2076,7 @@
             </details>
           </section>
           <h2>Admin-only actions</h3>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-all-users">
             <header class="EndpointSection__Header">
               <h3>Get all users</h3>
             </header>
@@ -1912,7 +2207,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection" id="get-event">
+          <section class="EndpointSection" id="get-user">
             <header class="EndpointSection__Header">
               <h3>Get one user</h3>
             </header>
@@ -1960,7 +2255,7 @@
               </section>
             </details>
           </section>  
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="update-user">
             <header class="EndpointSection__Header">
               <h3>Update user</h3>
             </header>
@@ -2011,7 +2306,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="delete-user">
             <header class="EndpointSection__Header">
               <h3>Delete user</h3>
             </header>
@@ -2050,7 +2345,7 @@
           <header class="MainSection__Header">
             <h2>Bookings</h2>
           </header>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="create-checkout">
             <header class="EndpointSection__Header">
               <h3>Create Stripe checkout session</h3>
             </header>
@@ -2129,9 +2424,9 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-order">
             <header class="EndpointSection__Header">
-              <h3>Get bookings for order</h3>
+              <h3>Get order bookings</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--get">
@@ -2169,7 +2464,7 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-my-bookings">
             <header class="EndpointSection__Header">
               <h3>Get own bookings</h3>
             </header>
@@ -2238,9 +2533,9 @@
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-event-refund-requests">
             <header class="EndpointSection__Header">
-              <h3>Get all bookings with refund requests for event</h3>
+              <h3>Get all refund requests for event</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--get">
@@ -2250,6 +2545,7 @@
                 /bookings/refund-requests/event/:id
               </code>
             </div>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
             <details class="EndpointSection__Details">
               <summary>Details</summary>
               <section class="EndpointSection__Options">
@@ -2275,15 +2571,15 @@
                     <code>length</code>: Number. Number of returned documents.
                   </li>
                   <li>
-                    <code>data</code>: <a href="#resource-booking">Booking</a>[]. The returned booking document.
+                    <code>data</code>: <a href="#resource-booking">Booking</a>[]. The returned booking documents.
                   </li>
                 </ul>
               </section>
             </details>
           </section>
-          <section class="EndpointSection">
+          <section class="EndpointSection" id="get-refund-request">
             <header class="EndpointSection__Header">
-              <h3>Get one refund request</h3>
+              <h3>Get refund request</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--get">
@@ -2293,26 +2589,183 @@
                 /bookings/refund-requests/:id
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Authorization required</p>
+             <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>The ID of the refund request.</p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>length</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>:
+                    <ul>
+                      <li><code>requestId</code>: String. Refund request ID.</li>
+                      <li><code>name</code>: String. Name associated with refund request bookings.</li>
+                      <li><code>email</code>: String. Email associated with refund request bookings.</li>
+                      <li><code>createdAt</code>: Date. Request creation date.</li>
+                      <li><code>reason</code>: String. Optional reason for request.</li>
+                      <li>
+                        <code>event</code>:
+                        <ul>
+                          <li><code>id</code>: String. ID of event associated with refund request bookings.</li>
+                          <li><code>name</code>: String. Name of event associated with refund request bookings.</li>
+                          <li><code>organizer</code>: String. ID of event organizer.</li>
+                        </ul>
+                      </li>
+                      <li>
+                        <code>tickets</code>: Array. Contains all tickets in the refund request.
+                        <ul>
+                          <li><code>price</code>: Number. Price of individual ticket.</li>
+                          <li><code>ticket</code>: <a href="#resource-ticket">TicketTier</a>. Data of individual ticket.</li>
+                        </ul>
+                      </li>
+                  </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
-          <section class="EndpointSection">
+          <h2>Admin-only actions</h2>
+          <section class="EndpointSection" id="get-all-bookings">
             <header class="EndpointSection__Header">
-              <h3>Admin-only actions</h3>
+              <h3>Get all bookings</h3>
             </header>
             <div class="EndpointSection__Endpoint">
               <span class="EndpointSection__HttpMethod--get">
                 GET
               </span>
               <code class="EndpointSection__URL">
-                /events
+                /bookings
               </code>
             </div>
-            <h4>Params</h4>
-            <h4>Response</h4>
-            <h4>Example</h4>
+            <p class="EndpointSection__ProtectedEndpoint">Admin authorization required</p>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>Query Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>[field]</code>
+                      <span>String</span>
+                    </div>
+                    <p>The key should correspond to a field in the events resource. The value is the value of that field you want to match in the results.</p>
+                    <p>eg. <code>paid=false</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>sort</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      Sorts returned events by the specified field. 
+                      Accepts two field names, space separated.
+                      If events have equal values for the first sorting field,
+                      they will be sorted by the second field. 
+                    </p>
+                    <p>
+                      Prefixing the fieldname with - will sort descending. Otherwise it sorts ascending. 
+                    </p>
+                    <p>eg. <code>sort=price -createdAt</code></p>
+                  </li>
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>fields</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      Specifies a comma-separated (with no spaces) list of fields to include in the returned events.
+                      Prefixing a field with - will exclude that field and include all others. Explicit exclusion cannot
+                      be combined with inclusion.
+                    </p>
+                    <p>VALID eg. <code>fields=name,email</code></p>
+                    <p>INVALID eg. <code>fields=name,email,-price</code></p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>length</code>: Number. Number of returned documents.
+                  </li>
+                  <li>
+                    <code>data</code>: <a href="#resource-booking">Booking</a>[]. The returned booking documents.
+                  </li>
+                </ul>
+              </section>
+            </details>
           </section>
+          <section class="EndpointSection" id="get-booking">
+            <header class="EndpointSection__Header">
+              <h3>Get booking</h3>
+            </header>
+            <div class="EndpointSection__Endpoint">
+              <span class="EndpointSection__HttpMethod--get">
+                GET
+              </span>
+              <code class="EndpointSection__URL">
+                /bookings/:id
+              </code>
+            </div>
+            <p class="EndpointSection__ProtectedEndpoint">Admin authorization required</p>
+            <details class="EndpointSection__Details">
+              <summary>Details</summary>
+              <section class="EndpointSection__Options">
+                <h4>URL Params</h4>
+                <ul class="EndpointSection__OptionsList">
+                  <li class="EndpointSection__Option">
+                    <div class="EndpointSection__OptionName">
+                      <code>:id</code>
+                      <span>String</span>
+                    </div>
+                    <p>
+                      The id of the requested booking.
+                    </p>
+                  </li>
+                </ul>
+              </section>
+              <section class="EndpointSection__Responses">
+                <h4>Response</h4>
+                <p>JSON</p>
+                <ul>
+                  <li>
+                    <code>status</code>: String.
+                  </li>
+                  <li>
+                    <code>data</code>: Object.
+                    <ul>
+                      <li>
+                        <code>data</code>: <a href="#resource-user">Booking</a>. The requested booking.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+            </details>
+          </section>  
       </main>
     </div>
   </body>

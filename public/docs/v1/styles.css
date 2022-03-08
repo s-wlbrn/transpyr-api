@@ -7,11 +7,14 @@
   --color-selected: hsl(203, 51%, 85%);
   --color-warning: #940e00;
   --color-warning-light: #cb5855;
+
+  --margin-section-content: 0.5rem;
 }
 
 body {
   display: flex;
   flex-direction: column;
+  margin: 0;
   height: 100vh;
   overflow: hidden;
   font-family: 'Work Sans', sans-serif;
@@ -22,18 +25,39 @@ nav {
   overflow: auto;
 }
 
+main {
+  flex: 1 1 80%;
+  padding-bottom: 4rem;
+  border-top: 1px solid black;
+}
+
 code {
   font-size: 1rem;
 }
 
 h1 {
   font-weight: bolder;
-  margin-top: 0.5rem;
+}
+
+h2 {
+  margin: 0.5rem 0;
 }
 
 .PageHeader {
   padding: 1rem;
   border-bottom: 1px solid black;
+}
+
+.PageHeader h1 {
+  margin-top: 0.5rem;
+}
+
+.Nav {
+  flex: 1 1 20%;
+  margin: 1rem;
+  background: linear-gradient(to top, white, var(--color-lighter));
+  padding: 1rem;
+  border-radius: 0.5rem;
 }
 
 .Nav a {
@@ -53,6 +77,7 @@ h1 {
 }
 
 .Nav ul {
+  margin-top: 0;
   list-style: none;
   padding-left: 1rem;
 }
@@ -61,6 +86,10 @@ h1 {
   display: flex;
   flex-direction: column;
   height: 100vh;
+}
+
+.Nav__Header {
+  color: var(--color-dark);
 }
 
 .LayoutWrapper {
@@ -87,8 +116,8 @@ h1 {
   padding-bottom: 1.5rem;
 }
 
-.EndpointSection > :not(.EndpointSection__Header) {
-  padding-left: 1rem;
+section > :not(header) {
+  margin-left: var(--margin-section-content);
 }
 
 .EndpointSection__Endpoint {
@@ -144,7 +173,6 @@ h1 {
 }
 
 .EndpointSection__OptionsList {
-  padding-left: 1rem;
   list-style: none;
 }
 
@@ -186,24 +214,37 @@ h1 {
   font-weight: bolder;
 }
 
+.EndpointSection__Responses > ul {
+  margin-left: 1.5rem;
+}
+
 .EndpointSection__Responses ul {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
+.ConfigSection__Environment {
+  margin-left: 1rem;
+}
+
 @media screen and (min-width: 768px) {
+  :root {
+    --margin-section-content: 1rem;
+  }
+
   .LayoutWrapper {
     flex-direction: row;
   }
 
-  .Nav {
-    flex: 1 1 15%;
-    padding: 0 1rem;
-    border-right: 1px solid black;
+  main {
+    border-top: none;
   }
 
-  main {
-    flex: 1 1 85%;
+  .Nav {
+    margin: 0;
+    border-right: 1px solid black;
+    background: none;
+    border-radius: 0;
   }
 }
