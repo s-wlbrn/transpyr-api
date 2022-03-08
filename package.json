@@ -7,7 +7,7 @@
     "start": "node server.js",
     "start-dev": "nodemon server.js",
     "debug": "ndb server.js",
-    "test": "jest --maxWorkers 4"
+    "test": "jest --runInBand"
   },
   "author": "Stephen Welbourn",
   "license": "ISC",
