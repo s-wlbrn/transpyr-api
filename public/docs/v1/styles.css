@@ -15,8 +15,8 @@ body {
   display: flex;
   flex-direction: column;
   margin: 0;
-  height: 100vh;
-  overflow: hidden;
+  height: calc(100vh + 3rem);
+  /* overflow: hidden; */
   font-family: 'Work Sans', sans-serif;
 }
 
@@ -27,8 +27,20 @@ nav {
 
 main {
   flex: 1 1 80%;
+  margin: 0.5rem;
   padding-bottom: 4rem;
-  border-top: 1px solid black;
+  border: 1px solid black;
+  border-radius: 1rem;
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 4rem;
+  background-color: var(--color-dark);
+  color: white;
+  font-weight: bold;
 }
 
 code {
@@ -46,6 +58,7 @@ h2 {
 .PageHeader {
   padding: 1rem;
   border-bottom: 1px solid black;
+  height: 12vh;
 }
 
 .PageHeader h1 {
@@ -54,10 +67,11 @@ h2 {
 
 .Nav {
   flex: 1 1 20%;
-  margin: 1rem;
+  margin: 0.5rem;
   background: linear-gradient(to top, white, var(--color-lighter));
   padding: 1rem;
-  border-radius: 0.5rem;
+  border: 1px solid black;
+  border-radius: 1rem;
 }
 
 .Nav a {
@@ -89,6 +103,7 @@ h2 {
 }
 
 .Nav__Header {
+  margin: 0;
   color: var(--color-dark);
 }
 
@@ -101,7 +116,7 @@ h2 {
 .MainSection__Header {
   display: flex;
   align-items: center;
-  margin: 1rem 0;
+  margin-bottom: 1rem;
   padding-left: 1rem;
   height: 6rem;
   background-color: var(--color-dark);
@@ -116,7 +131,7 @@ h2 {
   padding-bottom: 1.5rem;
 }
 
-section > :not(header) {
+section > section > :not(header) {
   margin-left: var(--margin-section-content);
 }
 
@@ -173,6 +188,7 @@ section > :not(header) {
 }
 
 .EndpointSection__OptionsList {
+  padding-left: 1rem;
   list-style: none;
 }
 
@@ -238,7 +254,9 @@ section > :not(header) {
   }
 
   main {
-    border-top: none;
+    margin: 0;
+    border: none;
+    border-radius: 0;
   }
 
   .Nav {
