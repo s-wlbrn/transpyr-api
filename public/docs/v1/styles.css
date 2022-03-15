@@ -184,7 +184,7 @@ section > section > :not(header) {
 }
 
 .EndpointSection__Details {
-  margin: 1rem 0;
+  margin: var(--margin-section-content);
 }
 
 .EndpointSection__OptionsList {
